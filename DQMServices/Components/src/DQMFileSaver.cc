@@ -209,8 +209,8 @@ DQMFileSaver::DQMFileSaver(const edm::ParameterSet &ps)
     saveByEvent_ (-1),
     saveByMinute_ (-1),
     saveByTime_ (-1),
-    saveByRun_ (1),
-    saveAtJobEnd_ (false),
+    saveByRun_ (-1),
+    saveAtJobEnd_ (true),
     saveReference_ (DQMStore::SaveWithReference),
     saveReferenceQMin_ (dqm::qstatus::STATUS_OK),
     forceRunNumber_ (-1),
@@ -342,12 +342,6 @@ DQMFileSaver::DQMFileSaver(const edm::ParameterSet &ps)
     saveAtJobEnd_ = ps.getUntrackedParameter<bool>("saveAtJobEnd", saveAtJobEnd_);
   }
 
-  if (saveAtJobEnd_ && forceRunNumber_ < 1)
-    throw cms::Exception("DQMFileSaver")
-      << "If saving at the end of the job, the run number must be"
-      << " overridden to a specific value using 'forceRunNumber'.";
-
-  
   // Set up base file name and determine the start time.
   char version[8];
   sprintf(version, "_V%04d_", int(version_));
@@ -496,8 +490,10 @@ DQMFileSaver::endJob(void)
 { 
   if (saveAtJobEnd_)
   {
-    if (convention_ == Offline && forceRunNumber_ > 0)
-      saveForOffline(workflow_, forceRunNumber_, 0);
+    if (convention_ == Offline)
+      {
+	saveForOffline(workflow_, irun_, 0);
+      }
     else
       throw cms::Exception("DQMFileSaver")
 	<< "Internal error.  Can only save files at the end of the"
