@@ -5,7 +5,7 @@
 // 
 
 //
-// Jordi Duarte Campderros (based on the Jason Slaunwhite 
+// Jordi Duarte Campderros (based on the Jason Slaunwhite
 // and Jeff Klukas coded from the HLTriggerOffline/Muon package
 //
 //
@@ -39,12 +39,11 @@ HLTHiggsValidator::~HLTHiggsValidator()
 	}
 }
 
-
 void HLTHiggsValidator::beginRun(const edm::Run & iRun, const edm::EventSetup & iSetup) 
 {
 	for(size_t i = 0; i < _analysisnames.size() ; ++i)
 	{
-		HLTHiggsSubAnalysis analyzer(_pset, _analysisnames.at(i));
+     	        HLTHiggsSubAnalysis analyzer(_pset, _analysisnames.at(i), consumesCollector());
 		_analyzers.push_back(analyzer);
 	}
 	// Call the Plotter beginRun (which stores the triggers paths..:)

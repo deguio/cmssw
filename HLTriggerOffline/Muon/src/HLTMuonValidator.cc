@@ -92,6 +92,33 @@ HLTMuonValidator::HLTMuonValidator(const ParameterSet& pset) :
   hltProcessName_(pset.getParameter<string>("hltProcessName")),
   hltPathsToCheck_(pset.getParameter<vstring>("hltPathsToCheck"))
 {
+  // Get the set of trigger paths we want to make plots for
+  set<string> hltPaths;
+  for (size_t i = 0; i < hltPathsToCheck_.size(); i++) {
+    TPRegexp pattern(hltPathsToCheck_[i]);
+    for (size_t j = 0; j < hltConfig_.triggerNames().size(); j++)
+      if (TString(hltConfig_.triggerNames()[j]).Contains(pattern))
+        hltPaths.insert(hltConfig_.triggerNames()[j]);
+  }
+
+  // Initialize the analyzers
+  analyzers_.clear();
+  set<string>::iterator iPath;
+  for (iPath = hltPaths.begin(); iPath != hltPaths.end(); iPath++) {
+
+    string path = * iPath;
+    string shortpath = path;
+    if (path.rfind("_v") < path.length())
+      shortpath = path.substr(0, path.rfind("_v"));
+
+    vector<string> labels = moduleLabels(path);
+    vector<string> steps = stepLabels(labels);
+
+    if (labels.size() > 0 && steps.size() > 0) {
+      HLTMuonPlotter analyzer(pset_, shortpath, labels, steps, consumesCollector());
+      analyzers_.push_back(analyzer);
+    }
+  }
 }
 
 
@@ -140,41 +167,13 @@ HLTMuonValidator::stepLabels(const vector<string>& modules) {
 
 void 
 HLTMuonValidator::beginRun(const edm::Run & iRun, 
-                         const edm::EventSetup & iSetup) {
-
+                         const edm::EventSetup & iSetup) 
+{  
   // Initialize hltConfig
   bool changedConfig;
   if (!hltConfig_.init(iRun, iSetup, hltProcessName_, changedConfig)) {
     LogError("HLTMuonVal") << "Initialization of HLTConfigProvider failed!!"; 
     return;
-  }
-
-  // Get the set of trigger paths we want to make plots for
-  set<string> hltPaths;
-  for (size_t i = 0; i < hltPathsToCheck_.size(); i++) {
-    TPRegexp pattern(hltPathsToCheck_[i]);
-    for (size_t j = 0; j < hltConfig_.triggerNames().size(); j++)
-      if (TString(hltConfig_.triggerNames()[j]).Contains(pattern))
-        hltPaths.insert(hltConfig_.triggerNames()[j]);
-  }
-  
-  // Initialize the analyzers
-  analyzers_.clear();
-  set<string>::iterator iPath;
-  for (iPath = hltPaths.begin(); iPath != hltPaths.end(); iPath++) {
-
-    string path = * iPath;
-    string shortpath = path;
-    if (path.rfind("_v") < path.length())
-      shortpath = path.substr(0, path.rfind("_v"));
-
-    vector<string> labels = moduleLabels(path);
-    vector<string> steps = stepLabels(labels);
-
-    if (labels.size() > 0 && steps.size() > 0) {
-      HLTMuonPlotter analyzer(pset_, shortpath, labels, steps, consumesCollector());
-      analyzers_.push_back(analyzer);
-    }
   }
 
   // Call the beginRun (which books all the histograms)
