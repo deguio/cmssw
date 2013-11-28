@@ -40,16 +40,6 @@ Implementation:
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-//Added by Max for the Trigger
-#include "DataFormats/HLTReco/interface/TriggerEventWithRefs.h"
-#include "DataFormats/Common/interface/TriggerResults.h"
-//#include "DataFormats/L1Trigger/interface/L1ParticleMap.h"
-#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
-
-#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
-#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerObjectMapRecord.h"
-#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerObjectMap.h"
-
 
 //Added for the DQM
 #include "DQMServices/Core/interface/MonitorElement.h"
@@ -88,8 +78,9 @@ TriggerValidator::TriggerValidator(const edm::ParameterSet& iConfig):
 					      std::string("SusyBsmTriggerValidation.root"))),
   StatFileName(iConfig.getUntrackedParameter("statFileName",
 					      std::string("SusyBsmTriggerValidation.stat"))),
-  l1Label(iConfig.getParameter<edm::InputTag>("L1Label")),
+  l1Label(consumes<L1GlobalTriggerObjectMapRecord>(iConfig.getParameter<edm::InputTag>("L1Label"))),
   hltLabel(iConfig.getParameter<edm::InputTag>("HltLabel")),
+  hlt_token_(consumes<TriggerResults>(iConfig.getParameter<edm::InputTag>("HltLabel"))),
   mcFlag(iConfig.getUntrackedParameter<bool>("mc_flag",false)),
   l1Flag(iConfig.getUntrackedParameter<bool>("l1_flag",false)),
   reco_parametersets(iConfig.getParameter<VParameterSet>("reco_parametersets")),
@@ -100,7 +91,8 @@ TriggerValidator::TriggerValidator(const edm::ParameterSet& iConfig):
   muonTag_(iConfig.getParameter<edm::InputTag>("muonTag")),
   triggerTag_(iConfig.getParameter<edm::InputTag>("triggerTag")),
   processName_(iConfig.getParameter<std::string>("hltConfigName")),
-  triggerName_(iConfig.getParameter<std::string>("triggerName"))
+  triggerName_(iConfig.getParameter<std::string>("triggerName")),
+  gtDigis_token_(consumes<L1GlobalTriggerReadoutRecord>(iConfig.getUntrackedParameter<edm::InputTag>("gtDigis",edm::InputTag("gtDigis"))))
 {
   //now do what ever initialization is needed
   theHistoFile = 0;
@@ -178,8 +170,7 @@ TriggerValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   // Get the L1 Info
   // ********************************************************    
   Handle<L1GlobalTriggerReadoutRecord> L1GTRR;
-  //  try {iEvent.getByType(L1GTRR);} catch (...) {;}
-  iEvent.getByLabel("gtDigis",L1GTRR);
+  iEvent.getByToken(gtDigis_token_,L1GTRR);
   if (!L1GTRR.isValid()) {edm::LogWarning("Readout Error|L1") << "L1ParticleMapCollection Not Valid!";}
   int nL1size = L1GTRR->decisionWord().size();
   if(firstEvent) {
@@ -201,9 +192,7 @@ TriggerValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     //for the moment the names are not included in L1GlobalTriggerReadoutRecord
     //we need to use L1GlobalTriggerObjectMapRecord
     edm::Handle<L1GlobalTriggerObjectMapRecord> gtObjectMapRecord;
-    //    iEvent.getByLabel("l1GtEmulDigis", gtObjectMapRecord);
-    //    iEvent.getByLabel("hltL1GtObjectMap", gtObjectMapRecord);
-    iEvent.getByLabel(l1Label, gtObjectMapRecord);
+    iEvent.getByToken(l1Label, gtObjectMapRecord);
      const std::vector<L1GlobalTriggerObjectMap>& objMapVec =
       gtObjectMapRecord->gtObjectMap();
      for (std::vector<L1GlobalTriggerObjectMap>::const_iterator itMap = objMapVec.begin();
@@ -278,7 +267,7 @@ TriggerValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   // Get the HLT Info
   // ******************************************************** 
   edm::Handle<TriggerResults> trhv;
-  iEvent.getByLabel(hltLabel,trhv);
+  iEvent.getByToken(hlt_token_,trhv);
   if( ! trhv.isValid() ) {
     LogDebug("") << "HL TriggerResults with label ["+hltLabel.encode()+"] not found!";
     return;
@@ -452,10 +441,10 @@ void TriggerValidator::beginRun(const edm::Run& run, const edm::EventSetup& c)
 
   
 
-  for(unsigned int i=0; i<reco_parametersets.size(); ++i) myRecoSelector.push_back(new RecoSelector(reco_parametersets[i]));
-  if(mcFlag) for(unsigned int i=0; i<mc_parametersets.size(); ++i) myMcSelector.push_back(new McSelector(mc_parametersets[i]));
-  if(l1Flag) myPlotMakerL1     = new PlotMakerL1(plotMakerL1Input);
-  myPlotMakerReco   = new PlotMakerReco(plotMakerRecoInput);
+  for(unsigned int i=0; i<reco_parametersets.size(); ++i) myRecoSelector.push_back(new RecoSelector(reco_parametersets[i], consumesCollector()));
+  if(mcFlag) for(unsigned int i=0; i<mc_parametersets.size(); ++i) myMcSelector.push_back(new McSelector(mc_parametersets[i], consumesCollector()));
+  if(l1Flag) myPlotMakerL1     = new PlotMakerL1(plotMakerL1Input, consumesCollector());
+  myPlotMakerReco   = new PlotMakerReco(plotMakerRecoInput, consumesCollector());
 //   myTurnOnMaker = new TurnOnMaker(turnOn_params);
   firstEvent = true;
 
@@ -563,7 +552,7 @@ void TriggerValidator::beginRun(const edm::Run& run, const edm::EventSetup& c)
       hHltPathsAfterMcCuts.push_back(dbe_->book1D(histo_name, hTemp));
     }
 
-  myMuonAnalyzer = new MuonAnalyzerSBSM(triggerTag_, muonTag_);
+  myMuonAnalyzer = new MuonAnalyzerSBSM(triggerTag_, muonTag_, consumesCollector());
   myMuonAnalyzer->InitializePlots(dbe_, dirname_);
 }
 

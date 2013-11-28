@@ -172,7 +172,7 @@ HLTMuonValidator::beginRun(const edm::Run & iRun,
     vector<string> steps = stepLabels(labels);
 
     if (labels.size() > 0 && steps.size() > 0) {
-      HLTMuonPlotter analyzer(pset_, shortpath, labels, steps);
+      HLTMuonPlotter analyzer(pset_, shortpath, labels, steps, consumesCollector());
       analyzers_.push_back(analyzer);
     }
   }
