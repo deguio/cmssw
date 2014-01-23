@@ -95,25 +95,6 @@ def customise_Validation(process,pileup):
     process.validation_step.remove(process.HLTSusyExoVal)
     process.validation_step.remove(process.hltHiggsValidator)
     process.validation_step.remove(process.relvalMuonBits)
-    if pileup>30:
-        process.trackValidator.label=cms.VInputTag(cms.InputTag("cutsRecoTracksHp"))
-        process.tracksValidationSelectors = cms.Sequence(process.cutsRecoTracksHp)
-        process.globalValidation.remove(process.recoMuonValidation)
-        process.validation.remove(process.recoMuonValidation)
-        process.validation_preprod.remove(process.recoMuonValidation)
-        process.validation_step.remove(process.recoMuonValidation)
-        process.validation.remove(process.globalrechitsanalyze)
-        process.validation_prod.remove(process.globalrechitsanalyze)
-        process.validation_step.remove(process.globalrechitsanalyze)
-        process.validation.remove(process.stripRecHitsValid)
-        process.validation_step.remove(process.stripRecHitsValid)
-        process.validation_step.remove(process.StripTrackingRecHitsValid)
-        process.globalValidation.remove(process.vertexValidation)
-        process.validation.remove(process.vertexValidation)
-        process.validation_step.remove(process.vertexValidation)
-        process.mix.input.nbPileupEvents.averageNumber = cms.double(0.0)
-        process.mix.minBunch = cms.int32(0)
-        process.mix.maxBunch = cms.int32(0)
 
     return process
 
