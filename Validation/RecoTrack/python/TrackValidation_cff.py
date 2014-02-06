@@ -9,12 +9,12 @@ from Validation.RecoTrack.PostProcessorTracker_cfi import *
 import PhysicsTools.RecoAlgos.recoTrackSelector_cfi
 
 from SimTracker.TrackerHitAssociation.clusterTpAssociationProducer_cfi import *
+from SimTracker.TrackAssociation.trackingParticleRecoTrackAsssociation_cfi import *
 
 TrackAssociatorByHitsRecoDenom= SimTracker.TrackAssociation.quickTrackAssociatorByHits_cfi.quickTrackAssociatorByHits.clone(
     ComponentName = cms.string('TrackAssociatorByHitsRecoDenom'),  
-    useClusterTPAssociation = cms.bool(True),
-    SimToRecoDenominator = cms.string('reco')
-    )
+    )#actually not used but needed to have proper folder names
+
 # Validation iterative steps
 cutsRecoTracksZero = PhysicsTools.RecoAlgos.recoTrackSelector_cfi.recoTrackSelector.clone()
 cutsRecoTracksZero.algorithm=cms.vstring("iter0")
@@ -83,28 +83,28 @@ cutsRecoTracksTenthHp = PhysicsTools.RecoAlgos.recoTrackSelector_cfi.recoTrackSe
 cutsRecoTracksTenthHp.algorithm=cms.vstring("iter10")
 cutsRecoTracksTenthHp.quality=cms.vstring("highPurity")
 
-trackValidator= Validation.RecoTrack.MultiTrackValidator_cfi.multiTrackValidator.clone()
+trackValidator= Validation.RecoTrack.MultiTrackValidator_cfi.multiTrackValidator.clone(UseAssociators = cms.bool(False))
 
 trackValidator.label=cms.VInputTag(cms.InputTag("generalTracks"),
                                    cms.InputTag("cutsRecoTracksHp"),
-                                   cms.InputTag("cutsRecoTracksZero"),
-                                   cms.InputTag("cutsRecoTracksZeroHp"),
-                                   cms.InputTag("cutsRecoTracksFirst"),
-                                   cms.InputTag("cutsRecoTracksFirstHp"),
-                                   cms.InputTag("cutsRecoTracksSecond"),
-                                   cms.InputTag("cutsRecoTracksSecondHp"),
-                                   cms.InputTag("cutsRecoTracksThird"),
-                                   cms.InputTag("cutsRecoTracksThirdHp"),
-                                   cms.InputTag("cutsRecoTracksFourth"),
-                                   cms.InputTag("cutsRecoTracksFourthHp"),
-                                   cms.InputTag("cutsRecoTracksFifth"),
-                                   cms.InputTag("cutsRecoTracksFifthHp"),
-                                   cms.InputTag("cutsRecoTracksSixth"),
-                                   cms.InputTag("cutsRecoTracksSixthHp"),
-                                   cms.InputTag("cutsRecoTracksNinth"),
-                                   cms.InputTag("cutsRecoTracksNinthHp"),
-                                   cms.InputTag("cutsRecoTracksTenth"),
-                                   cms.InputTag("cutsRecoTracksTenthHp"),
+                                   #cms.InputTag("cutsRecoTracksZero"),
+                                   #cms.InputTag("cutsRecoTracksZeroHp"),
+                                   #cms.InputTag("cutsRecoTracksFirst"),
+                                   #cms.InputTag("cutsRecoTracksFirstHp"),
+                                   #cms.InputTag("cutsRecoTracksSecond"),
+                                   #cms.InputTag("cutsRecoTracksSecondHp"),
+                                   #cms.InputTag("cutsRecoTracksThird"),
+                                   #cms.InputTag("cutsRecoTracksThirdHp"),
+                                   #cms.InputTag("cutsRecoTracksFourth"),
+                                   #cms.InputTag("cutsRecoTracksFourthHp"),
+                                   #cms.InputTag("cutsRecoTracksFifth"),
+                                   #cms.InputTag("cutsRecoTracksFifthHp"),
+                                   #cms.InputTag("cutsRecoTracksSixth"),
+                                   #cms.InputTag("cutsRecoTracksSixthHp"),
+                                   #cms.InputTag("cutsRecoTracksNinth"),
+                                   #cms.InputTag("cutsRecoTracksNinthHp"),
+                                   #cms.InputTag("cutsRecoTracksTenth"),
+                                   #cms.InputTag("cutsRecoTracksTenthHp"),
                                    )
 trackValidator.skipHistoFit=cms.untracked.bool(True)
 trackValidator.useLogPt=cms.untracked.bool(True)
@@ -113,27 +113,28 @@ trackValidator.useLogPt=cms.untracked.bool(True)
 #trackValidator.nintpT = cms.int32(40)
 
 # the track selectors
-tracksValidationSelectors = cms.Sequence( cutsRecoTracksHp*
-                                cutsRecoTracksZero*
-                                cutsRecoTracksZeroHp*
-                                cutsRecoTracksFirst*
-                                cutsRecoTracksFirstHp*
-                                cutsRecoTracksSecond*
-                                cutsRecoTracksSecondHp*
-                                cutsRecoTracksThird*
-                                cutsRecoTracksThirdHp*
-                                cutsRecoTracksFourth*
-                                cutsRecoTracksFourthHp*
-                                cutsRecoTracksFifth*
-                                cutsRecoTracksFifthHp*
-                                cutsRecoTracksSixth*
-                                cutsRecoTracksSixthHp* 
-                                cutsRecoTracksNinth*
-                                cutsRecoTracksNinthHp* 
-                                cutsRecoTracksTenth*
-                                cutsRecoTracksTenthHp )
+tracksValidationSelectors = cms.Sequence( cutsRecoTracksHp
+                                #cutsRecoTracksZero*
+                                #cutsRecoTracksZeroHp*
+                                #cutsRecoTracksFirst*
+                                #cutsRecoTracksFirstHp*
+                                #cutsRecoTracksSecond*
+                                #cutsRecoTracksSecondHp*
+                                #cutsRecoTracksThird*
+                                #cutsRecoTracksThirdHp*
+                                #cutsRecoTracksFourth*
+                                #cutsRecoTracksFourthHp*
+                                #cutsRecoTracksFifth*
+                                #cutsRecoTracksFifthHp*
+                                #cutsRecoTracksSixth*
+                                #cutsRecoTracksSixthHp* 
+                                #cutsRecoTracksNinth*
+                                #cutsRecoTracksNinthHp* 
+                                #cutsRecoTracksTenth*
+                                #cutsRecoTracksTenthHp
+                                          )
 
 # selectors go into separate "prevalidation" sequence
-tracksValidation = cms.Sequence( tpClusterProducer * trackValidator)
+tracksValidation = cms.Sequence( tpClusterProducer * trackingParticleRecoTrackAsssociation * trackValidator)
 tracksValidationFS = cms.Sequence( trackValidator )
 
