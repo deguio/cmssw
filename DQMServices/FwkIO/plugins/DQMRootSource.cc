@@ -386,6 +386,8 @@ class DQMRootSource : public edm::InputSource
       unsigned int m_lastSeenRun2;
       unsigned int m_lastSeenLumi2;
       unsigned int m_filterOnRun;
+      bool m_skipBadFiles;
+      bool skip = 0;
       bool m_justOpenedFileSoNeedToGenerateRunTransition;
       bool m_shouldReadMEs;
       std::set<MonitorElement*> m_lumiElements;
@@ -394,6 +396,7 @@ class DQMRootSource : public edm::InputSource
       std::vector<edm::ProcessHistoryID> m_reducedHistoryIDs;
       
       edm::JobReport::Token m_jrToken;
+
 };
 
 //
@@ -411,6 +414,8 @@ DQMRootSource::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
     ->setComment("Names of files to be processed.");
   desc.addUntracked<unsigned int>("filterOnRun",0)
     ->setComment("Just limit the process to the selected run.");
+  desc.addUntracked<bool>("skipBadFiles",false)
+    ->setComment("Skip the file is it is not valid");
   desc.addUntracked<std::string>("overrideCatalog",std::string())
     ->setComment("An alternate file catalog to use instead of the standard site one.");
   descriptions.addDefault(desc);
@@ -433,6 +438,7 @@ DQMRootSource::DQMRootSource(edm::ParameterSet const& iPSet, const edm::InputSou
   m_lastSeenRun2(0),
   m_lastSeenLumi2(0),
   m_filterOnRun(iPSet.getUntrackedParameter<unsigned int>("filterOnRun", 0)),
+  m_skipBadFiles(iPSet.getUntrackedParameter<bool>("skipBadFiles", false)),
   m_justOpenedFileSoNeedToGenerateRunTransition(false),
   m_shouldReadMEs(true)
 {
@@ -619,9 +625,12 @@ DQMRootSource::readLuminosityBlock_( edm::LuminosityBlockPrincipal& lbCache)
 
 std::unique_ptr<edm::FileBlock>
 DQMRootSource::readFile_() {
-  //std::cout <<"readFile_"<<std::endl;
   setupFile(m_fileIndex);
+
   ++m_fileIndex;
+  if(m_skipBadFiles && skip)
+    return std::unique_ptr<edm::FileBlock>(new edm::FileBlock);
+
   readNextItemType();
 
   edm::Service<edm::JobReport> jr;
@@ -640,6 +649,12 @@ DQMRootSource::readFile_() {
 
 void
 DQMRootSource::closeFile_() {
+  if (skip)
+    {
+      skip = 0;
+      return;
+    }
+  
   edm::Service<edm::JobReport> jr;
   jr->inputFileClosed(edm::InputType::Primary, m_jrToken);
 }
@@ -745,7 +760,7 @@ void DQMRootSource::readNextItemType()
   }
 }
 
-void 
+void
 DQMRootSource::setupFile(unsigned int iIndex)
 {
   if(m_file.get() != 0 && iIndex > 0) {
@@ -757,18 +772,28 @@ DQMRootSource::setupFile(unsigned int iIndex)
   try {
     m_file = std::auto_ptr<TFile>(TFile::Open(m_catalog.fileNames()[iIndex].c_str()));
   } catch(cms::Exception const& e) {
-    edm::Exception ex(edm::errors::FileOpenError,"",e);
-    ex.addContext("Opening DQM Root file");
-    ex <<"\nInput file " << m_catalog.fileNames()[iIndex] << " was not found, could not be opened, or is corrupted.\n";
-    throw ex;
+    if(!m_skipBadFiles)
+      {
+	edm::Exception ex(edm::errors::FileOpenError,"",e);
+	ex.addContext("Opening DQM Root file");
+	ex <<"\nInput file " << m_catalog.fileNames()[iIndex] << " was not found, could not be opened, or is corrupted.\n";
+	throw ex;
+      }
+    skip = 1;
+    return;
   }
   if(not m_file->IsZombie()) {  
     logFileAction("  Successfully opened file ", m_catalog.fileNames()[iIndex].c_str());
   } else {
-    edm::Exception ex(edm::errors::FileOpenError);
-    ex<<"Input file "<<m_catalog.fileNames()[iIndex].c_str() <<" could not be opened.\n";
-    ex.addContext("Opening DQM Root file");
-    throw ex;
+    if(!m_skipBadFiles)
+      {
+	edm::Exception ex(edm::errors::FileOpenError);
+	ex<<"Input file "<<m_catalog.fileNames()[iIndex].c_str() <<" could not be opened.\n";
+	ex.addContext("Opening DQM Root file");
+	throw ex;
+      }
+    skip = 1;
+    return;
   }
   //Check file format version, which is encoded in the Title of the TFile
   if(0 != strcmp(m_file->GetTitle(),"1")) {
@@ -779,11 +804,19 @@ DQMRootSource::setupFile(unsigned int iIndex)
   //Get meta Data
   TDirectory* metaDir = m_file->GetDirectory(kMetaDataDirectoryAbsolute);
   if(0==metaDir) {
-    edm::Exception ex(edm::errors::FileReadError);
-    ex<<"Input file "<<m_catalog.fileNames()[iIndex].c_str() <<" appears to be corrupted since it does not have the proper internal structure.\n"
-      " Check to see if the file was closed properly.\n";    
-    ex.addContext("Opening DQM Root file");
-    throw ex;    
+    if(!m_skipBadFiles)
+      {
+	edm::Exception ex(edm::errors::FileReadError);
+	ex<<"Input file "<<m_catalog.fileNames()[iIndex].c_str() <<" appears to be corrupted since it does not have the proper internal structure.\n"
+	  " Check to see if the file was closed properly.\n";    
+	ex.addContext("Opening DQM Root file");
+	throw ex;    
+      }
+    else 
+      {
+	skip = 1;
+	return;
+      }
   }
   TTree* parameterSetTree = dynamic_cast<TTree*>(metaDir->Get(kParameterSetTree));
   assert(0!=parameterSetTree);
@@ -970,6 +1003,8 @@ DQMRootSource::setupFile(unsigned int iIndex)
   }
   //After a file open, the framework expects to see a new 'IsRun'
   m_justOpenedFileSoNeedToGenerateRunTransition=true;
+
+  return;
 }
 
 void
