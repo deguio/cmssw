@@ -22,6 +22,8 @@ def customise(process):
 #     oncePerEventMode=cms.untracked.bool(False)
 #    )
 
+    # Do not activate by default the logging of where each histogram is booked.
+    process.DQMStore.verbose = cms.untracked.int32(2)
     process.load("DQMServices.Components.DQMStoreStats_cfi")
     process.stats = cms.Path(process.dqmStoreStats)
     process.schedule.insert(-2,process.stats)
