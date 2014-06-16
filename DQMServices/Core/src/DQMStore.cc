@@ -333,7 +333,7 @@ void DQMStore::mergeAndResetMEsRunSummaryCache(uint32_t run,
                                                uint32_t streamId,
                                                uint32_t moduleId) {
   if (verbose_ > 1)
-    std::cout << "Merging objects from run: "
+    std::cout << "DQMStore::mergeAndResetMEsRunSummaryCache - Merging objects from run: "
               << run
               << ", stream: " << streamId
               << " module: " << moduleId << std::endl;
@@ -348,7 +348,7 @@ void DQMStore::mergeAndResetMEsRunSummaryCache(uint32_t run,
       break;
 
     // Handle Run-based histograms only.
-    if (i->getLumiFlag()) {
+    if (i->getLumiFlag() || LSbasedMode_) {
       ++i;
       continue;
     }
@@ -380,7 +380,7 @@ void DQMStore::mergeAndResetMEsLuminositySummaryCache(uint32_t run,
 						      uint32_t streamId,
 						      uint32_t moduleId) {
   if (verbose_ > 1)
-    std::cout << "Merging objects from run: "
+    std::cout << "DQMStore::mergeAndResetMEsLuminositySummaryCache - Merging objects from run: "
               << run << 	" lumi: " << lumi
               << ", stream: " << streamId
               << " module: " << moduleId << std::endl;
@@ -396,7 +396,7 @@ void DQMStore::mergeAndResetMEsLuminositySummaryCache(uint32_t run,
       break;
 
     // Handle LS-based histograms only.
-    if (not i->getLumiFlag()) {
+    if (not (i->getLumiFlag() || LSbasedMode_)) {
       ++i;
       continue;
     }
@@ -410,11 +410,11 @@ void DQMStore::mergeAndResetMEsLuminositySummaryCache(uint32_t run,
     std::set<MonitorElement>::const_iterator me = data_.find(global_me);
     if (me != data_.end()) {
       if (verbose_ > 1)
-	std::cout << "Found global Object, using it --> ";
+	std::cout << "Found global Object, using it --> " << me->getFullname() << std::endl;
       me->getTH1()->Add(i->getTH1());
     } else {
       if (verbose_ > 1)
-        std::cout << "No global Object found. ";
+        std::cout << "No global Object found. " << std::endl;
       std::pair<std::set<MonitorElement>::const_iterator, bool> gme;
       gme = data_.insert(global_me);
       assert(gme.second);
@@ -514,6 +514,10 @@ DQMStore::initializeFrom(const edm::ParameterSet& pset) {
   if (enableMultiThread_)
     std::cout << "DQMStore: MultiThread option is enabled\n";
 
+  LSbasedMode_ = pset.getUntrackedParameter<bool>("LSbasedMode", false);
+   if (LSbasedMode_)
+     std::cout << "DQMStore: LSbasedMode option is enabled\n";
+   
   std::string ref = pset.getUntrackedParameter<std::string>("referenceFileName", "");
   if (! ref.empty())
   {
@@ -2347,6 +2351,7 @@ DQMStore::cdInto(const std::string &path) const
 
 void DQMStore::savePB(const std::string &filename,
                       const std::string &path /* = "" */,
+		      const uint32_t run /* = 0 */,
 		      const bool resetMEsAfterWriting /* = false */)
 {
   using google::protobuf::io::FileOutputStream;
@@ -2372,13 +2377,30 @@ void DQMStore::savePB(const std::string &filename,
       continue;
 
     // Loop over monitor elements in this directory.
-    MonitorElement proto(&*di, std::string());
+    MonitorElement proto(&*di, std::string(), run, 0, 0);
     mi = data_.lower_bound(proto);
     for ( ; mi != me && isSubdirectory(*di, *mi->data_.dirname); ++mi)
     {
+      if (verbose_ > 1)
+        std::cout << "Run: " << (*mi).run()
+                  << " Lumi: " << (*mi).lumi()
+                  << " LumiFlag: " << (*mi).getLumiFlag()
+                  << " streamId: " << (*mi).streamId()
+                  << " moduleId: " << (*mi).moduleId()
+                  << " fullpathname: " << (*mi).getPathname() << std::endl;
       // Skip if it isn't a direct child.
       if (*di != *mi->data_.dirname)
 	continue;
+
+      // Keep backward compatibility with the old way of
+      // booking/handlind MonitorElements into the DQMStore. If run is
+      // 0 it means that a booking happened w/ the old non-threadsafe
+      // style, and we have to ignore the streamId and moduleId as a
+      // consequence.
+
+      if (run != 0 && (mi->data_.streamId !=0 || mi->data_.moduleId !=0))
+        continue;
+
       // Skip if it is not a ROOT object
       if ((*mi).kind() < MonitorElement::DQM_KIND_TH1F)
         continue;

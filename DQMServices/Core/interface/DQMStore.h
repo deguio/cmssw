@@ -520,6 +520,7 @@ class DQMStore
   // ---------------------- public I/O --------------------------------------
   void                          savePB(const std::string &filename,
                                        const std::string &path = "",
+				       const uint32_t run = 0,
 				       const bool resetMEsAfterWriting = false);
   void                          save(const std::string &filename,
                                      const std::string &path = "",
@@ -679,6 +680,7 @@ class DQMStore
   double                        scaleFlag_;
   bool                          collateHistograms_;
   bool                          enableMultiThread_;
+  bool                          LSbasedMode_;
   bool                          forceResetOnBeginLumi_;
   std::string                   readSelectedDirectory_;
   uint32_t                      run_;
