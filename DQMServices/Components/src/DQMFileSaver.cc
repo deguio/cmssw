@@ -61,6 +61,86 @@ onlineOfflineFileName(const std::string &fileBaseName,
   return filename;
 }
 
+void
+DQMFileSaver::saveForOfflinePB(const std::string &workflow, int run) const
+{
+  char suffix[64];
+  sprintf(suffix, "R%09d", run);
+  std::string filename = onlineOfflineFileName(fileBaseName_, std::string(suffix), workflow, child_, PB);
+  dbe_->savePB(filename, filterName_);
+}
+
+void
+DQMFileSaver::saveForOffline(const std::string &workflow, int run, int lumi) const
+{
+  char suffix[64];
+  sprintf(suffix, "R%09d", run);
+
+  char rewrite[128];
+  if (lumi == 0) // save for run
+    sprintf(rewrite, "\\1Run %d/\\2/Run summary", run);
+  else
+    sprintf(rewrite, "\\1Run %d/\\2/By Lumi Section %d-%d", run, lumi, lumi);
+
+  std::string filename = onlineOfflineFileName(fileBaseName_, std::string(suffix), workflow, child_, ROOT);
+
+  if (lumi == 0) // save for run
+  {
+
+    //TODO(fede) temporarily removed becase not safe when running multi*
+
+    // // set run end flag
+    // dbe_->cd();
+    // dbe_->setCurrentFolder("Info/ProvInfo");
+
+    // // do this, because ProvInfo is not yet run in offline DQM
+    // MonitorElement* me = dbe_->get("Info/ProvInfo/CMSSW");
+    // if (!me) me = dbe_->bookString("CMSSW",edm::getReleaseVersion().c_str() );
+
+    // me = dbe_->get("Info/ProvInfo/runIsComplete");
+    // if (!me) me = dbe_->bookFloat("runIsComplete");
+
+    // if (me)
+    // {
+    //   if (runIsComplete_)
+    //     me->Fill(1.);
+    //   else
+    //     me->Fill(0.);
+    // }
+
+    dbe_->save(filename,
+               "",
+               "^(Reference/)?([^/]+)",
+               rewrite,
+               enableMultiThread_ ? run : 0,
+               (DQMStore::SaveReferenceTag) saveReference_,
+               saveReferenceQMin_,
+               fileUpdate_ ? "UPDATE" : "RECREATE");
+  }
+  else // save EventInfo folders for luminosity sections
+  {
+    std::vector<std::string> systems = (dbe_->cd(), dbe_->getSubdirs());
+
+    std::cout << " DQMFileSaver: storing EventInfo folders for Run: "
+              << run << ", Lumi Section: " << lumi << ", Subsystems: " ;
+
+    for (size_t i = 0, e = systems.size(); i != e; ++i) {
+      if (systems[i] != "Reference") {
+        dbe_->cd();
+	std::cout << systems[i] << "  " ;
+        dbe_->save(filename,
+                   systems[i]+"/EventInfo", "^(Reference/)?([^/]+)",
+                   rewrite,
+                   enableMultiThread_ ? run : 0,
+                   DQMStore::SaveWithoutReference,
+                   dqm::qstatus::STATUS_OK,
+                   fileUpdate_ ? "UPDATE" : "RECREATE");
+	// from now on update newly created file
+	if (fileUpdate_.load() == 0) fileUpdate_ = 1;
+      }
+    }
+  }
+}
 
 static void
 doSaveForOnline(DQMStore *store,
@@ -241,7 +321,7 @@ DQMFileSaver::saveForFilterUnit(const std::string& rewrite, int run, int lumi) c
 	     enableMultiThread_ ? run : 0,
              (DQMStore::SaveReferenceTag) saveReference_,
              saveReferenceQMin_,
-             fileUpdate_,
+             fileUpdate_ ? "UPDATE" : "RECREATE",
 	     true);
   saveJson(run, lumi, filename_json, filename);
 }
@@ -275,20 +355,17 @@ DQMFileSaver::DQMFileSaver(const edm::ParameterSet &ps)
     runIsComplete_ (false),
     enableMultiThread_ (false),
     saveByLumiSection_ (-1),
-    saveByEvent_ (-1),
-    saveByMinute_ (-1),
-    saveByTime_ (-1),
     saveByRun_ (-1),
     saveAtJobEnd_ (false),
     saveReference_ (DQMStore::SaveWithReference),
     saveReferenceQMin_ (dqm::qstatus::STATUS_OK),
     forceRunNumber_ (-1),
     fileBaseName_ (""),
-    fileUpdate_ ("RECREATE"),
+    fileUpdate_ (0),
     dbe_ (&*edm::Service<DQMStore>()),
     nrun_ (0),
     nlumi_ (0),
-    ilumiprev_ (-1)
+    irun_ (0)
 {
   // Determine the file saving convention, and adjust defaults accordingly.
   std::string convention = ps.getUntrackedParameter<std::string>("convention", "Offline");
@@ -413,9 +490,6 @@ DQMFileSaver::DQMFileSaver(const edm::ParameterSet &ps)
   if (convention_ == Online)
   {
     getAnInt(ps, saveByRun_, "saveByRun");
-    getAnInt(ps, saveByEvent_, "saveByEvent");
-    getAnInt(ps, saveByMinute_, "saveByMinute");
-    getAnInt(ps, saveByTime_, "saveByTime");
   }
 
   if (convention_ == Offline)
@@ -437,9 +511,6 @@ DQMFileSaver::DQMFileSaver(const edm::ParameterSet &ps)
     version[7]='\0';
     fileBaseName_ = fileBaseName_ + producer_ + version;
   }
-  //Determine the start time.
-  gettimeofday(&start_, 0);
-  saved_ = start_;
 
   // Log some information what we will do.
   edm::LogInfo("DQMFileSaver")
@@ -447,9 +518,6 @@ DQMFileSaver::DQMFileSaver(const edm::ParameterSet &ps)
     << " using base file name '" << fileBaseName_ << "'\n"
     << " forcing run number " << forceRunNumber_ << "\n"
     << " saving every " << saveByLumiSection_ << " lumi section(s)\n"
-    << " saving every " << saveByEvent_ << " event(s)\n"
-    << " saving every " << saveByMinute_ << " minute(s)\n"
-    << " saving every 2^n*" << saveByTime_ << " minutes \n"
     << " saving every " << saveByRun_ << " run(s)\n"
     << " saving at job end: " << (saveAtJobEnd_ ? "yes" : "no") << "\n";
 }
@@ -458,8 +526,7 @@ DQMFileSaver::DQMFileSaver(const edm::ParameterSet &ps)
 void
 DQMFileSaver::beginJob()
 {
-  ilumiprev_ = -1;
-  nrun_ = nlumi_ = 0;
+  nrun_ = nlumi_ = irun_ = 0;
   
   // Determine if we are running multithreading asking to the DQMStore. Not to be moved in the ctor
   enableMultiThread_ = dbe_->enableMultiThread_;
@@ -481,6 +548,9 @@ DQMFileSaver::globalBeginLuminosityBlock(const edm::LuminosityBlock &l, const ed
 
 void DQMFileSaver::analyze(edm::StreamID, const edm::Event &e, const edm::EventSetup &) const
 {
+  //save by event and save by time are not supported
+  //anymore in the threaded framework. please use
+  //savebyLumiSection instead.
 }
 
 void
@@ -495,12 +565,12 @@ DQMFileSaver::globalEndLuminosityBlock(const edm::LuminosityBlock & iLS, const e
 	<< "Internal error, can save files at end of lumi block"
 	<< " only in Online, FilterUnit or Offline mode.";
 
-    if (convention_ == Online && nlumi_ == saveByLumiSection_) // insist on lumi section ordering
+    if (convention_ == Online && (nlumi_ % saveByLumiSection_) == 0) // insist on lumi section ordering
     {
       char suffix[64];
       char rewrite[128];
       sprintf(suffix, "_R%09d_L%06d", irun, ilumi);
-      sprintf(rewrite, "\\1Run %d/\\2/By Lumi Section %d-%d", irun, ilumiprev_.load(), ilumi);
+      sprintf(rewrite, "\\1Run %d/\\2/By Lumi Section %d-%d", irun, ilumi-nlumi_, ilumi);
       if (fileFormat_ == ROOT)
         saveForOnline(irun, suffix, rewrite);
       else if (fileFormat_ == PB)
@@ -509,8 +579,6 @@ DQMFileSaver::globalEndLuminosityBlock(const edm::LuminosityBlock & iLS, const e
         throw cms::Exception("DQMFileSaver")
           << "Internal error, can save files"
           << " only in ROOT or ProtocolBuffer format.";
-      ilumiprev_ = -1;
-      nlumi_ = 0;
     }
     if (convention_ == FilterUnit) // store at every lumi section end
     {
@@ -527,32 +595,73 @@ DQMFileSaver::globalEndLuminosityBlock(const edm::LuminosityBlock & iLS, const e
           << "Internal error, can save files"
           << " only in ROOT or ProtocolBuffer format.";
     }
-    // if (convention_ == Offline)
-    // {
-    //   if (fileFormat_ == ROOT)
-    //     saveForOffline(workflow_, irun, ilumi);
-    //   else
-    //   // TODO(diguida): do we need to support lumisection saving in Offline for PB?
-    //   // In this case, for ROOT, we only save EventInfo folders: we can filter them...
-    //     throw cms::Exception("DQMFileSaver")
-    //       << "Internal error, can save files"
-    //       << " only in ROOT format.";
-    // }
+    if (convention_ == Offline)
+    {
+      if (fileFormat_ == ROOT)
+        saveForOffline(workflow_, irun, ilumi);
+      else
+      // TODO(diguida): do we need to support lumisection saving in Offline for PB?
+      // In this case, for ROOT, we only save EventInfo folders: we can filter them...
+        throw cms::Exception("DQMFileSaver")
+          << "Internal error, can save files"
+          << " only in ROOT format.";
+    }
   }
 }
 
 void
 DQMFileSaver::globalEndRun(const edm::Run & iRun, const edm::EventSetup &) const
 {
-  //  int irun     = iRun.id().run();
+  int irun     = iRun.id().run();
+  irun_        = irun;
+  if (irun > 0 && saveByRun_ > 0 && (nrun_ % saveByRun_) == 0)
+    {
+      if (convention_ == Online)
+	{
+	  char suffix[64];
+	  sprintf(suffix, "_R%09d", irun);
+	  char rewrite[64];
+	  sprintf(rewrite, "\\1Run %d/\\2/Run summary", irun);
+	  if (fileFormat_ == ROOT)
+	    saveForOnline(irun, suffix, rewrite);
+	  else if (fileFormat_ == PB)
+	    saveForOnlinePB(irun, suffix);
+	  else
+	    throw cms::Exception("DQMFileSaver")
+	      << "Internal error, can save files"
+	      << " only in ROOT or ProtocolBuffer format.";
+	}
+      else if (convention_ == Offline && fileFormat_ == ROOT)
+	saveForOffline(workflow_, irun, 0);
+      else if (convention_ == Offline && fileFormat_ == PB)
+	saveForOfflinePB(workflow_, irun);
+      else
+	throw cms::Exception("DQMFileSaver")
+	  << "Internal error.  Can only save files in endRun()"
+	  << " in Online and Offline modes.";
+    }
 }
 
 void
 DQMFileSaver::endJob(void)
 {
   if (saveAtJobEnd_)
-  {
-  }
+    {
+      if (convention_ == Offline && forceRunNumber_ > 0)
+	saveForOffline(workflow_, forceRunNumber_, 0);
+      else if (convention_ == Offline)
+	saveForOffline(workflow_, irun_, 0);
+      else
+	throw cms::Exception("DQMFileSaver")
+	  << "Internal error.  Can only save files at the end of the"
+	  << " job in Offline mode.";
+    }
+  
+  // save JobReport once per job
+  char suffix[64];
+  sprintf(suffix, "R%09d", irun_.load());
+  std::string filename = onlineOfflineFileName(fileBaseName_, suffix, workflow_, child_, PB);
+  saveJobReport(filename);
 }
 
 void

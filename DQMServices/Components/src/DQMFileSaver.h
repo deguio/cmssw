@@ -3,7 +3,6 @@
 
 #include "FWCore/Framework/interface/global/EDAnalyzer.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
-#include <sys/time.h>
 #include <string>
 
 namespace saverDetails {struct NoCache {};}
@@ -39,6 +38,8 @@ public:
   };
 
 private:
+  void saveForOfflinePB(const std::string &workflow, int run) const;
+  void saveForOffline(const std::string &workflow, int run, int lumi) const;
   void saveForOnlinePB(int run, const std::string &suffix) const;
   void saveForOnline(int run, const std::string &suffix, const std::string &rewrite) const;
   void saveForFilterUnitPB(int run, int lumi) const;
@@ -58,9 +59,6 @@ private:
   bool          enableMultiThread_;
 
   int		saveByLumiSection_;
-  int		saveByEvent_;
-  int		saveByMinute_;
-  int		saveByTime_;
   int		saveByRun_;
   bool		saveAtJobEnd_;
   int		saveReference_;
@@ -68,20 +66,15 @@ private:
   int		forceRunNumber_;
 
   std::string	fileBaseName_;
-  std::string	fileUpdate_;
+  mutable std::atomic<int> fileUpdate_;
 
   DQMStore	*dbe_;
   
-  //mutable std::atomic<int> irun_;
   mutable std::atomic<int> nrun_;
-  //mutable std::atomic<int> ievent_;
-  //mutable std::atomic<int> nevent_;
-  //mutable std::atomic<int> ilumi_;
   mutable std::atomic<int> nlumi_;
-  mutable std::atomic<int> ilumiprev_;
-  mutable timeval	start_;
-  mutable timeval	saved_;
 
+  //needed only for the harvesting step when saving in the endJob
+  mutable std::atomic<int> irun_;
 };
 
 #endif // DQMSERVICES_COMPONEntS_DQMFILESAVER_H

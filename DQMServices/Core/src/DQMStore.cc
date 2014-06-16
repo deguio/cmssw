@@ -361,11 +361,11 @@ void DQMStore::mergeAndResetMEsRunSummaryCache(uint32_t run,
     std::set<MonitorElement>::const_iterator me = data_.find(global_me);
     if (me != data_.end()) {
       if (verbose_ > 1)
-        std::cout << "Found global Object, using it. ";
+	std::cout << "Found global Object, using it --> " << me->getFullname() << std::endl;
       me->getTH1()->Add(i->getTH1());
     } else {
       if (verbose_ > 1)
-        std::cout << "No global Object found. ";
+        std::cout << "No global Object found. " << std::endl;
       std::pair<std::set<MonitorElement>::const_iterator, bool> gme;
       gme = data_.insert(global_me);
       assert(gme.second);
@@ -2535,8 +2535,6 @@ DQMStore::save(const std::string &filename,
       // consequence.
 
       if (run != 0 && (mi->data_.streamId !=0 || mi->data_.moduleId !=0)) {
-	if (verbose_ > 1)
-	  std::cout << "DQMStore::save: non threadsafe module. Skipping" << std::endl;
         continue;
       }
 
