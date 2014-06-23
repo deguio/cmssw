@@ -2387,7 +2387,7 @@ void DQMStore::savePB(const std::string &filename,
                   << " LumiFlag: " << (*mi).getLumiFlag()
                   << " streamId: " << (*mi).streamId()
                   << " moduleId: " << (*mi).moduleId()
-                  << " fullpathname: " << (*mi).getPathname() << std::endl;
+                  << " fullpathname: " << (*mi).getFullname() << std::endl;
       // Skip if it isn't a direct child.
       if (*di != *mi->data_.dirname)
 	continue;

@@ -51,6 +51,11 @@ process.add_(cms.Service("DQMStore"))
 if b.multithread():
     process.out.enableMultiThread = cms.untracked.bool(True)
     process.DQMStore.enableMultiThread = cms.untracked.bool(True)
+    process.options = cms.untracked.PSet(
+        numberOfThreads = cms.untracked.uint32(4),
+        numberOfStreams = cms.untracked.uint32(4)
+        )
+
 
 
 
@@ -60,13 +65,15 @@ if len(sys.argv) > 3:
         process.DQMStore.forceResetOnBeginRun = cms.untracked.bool(True)
 
 
+#----------------------------------------------------------#
 #global options
+process.DQMStore.LSbasedMode = cms.untracked.bool(True)
 process.DQMStore.verbose = cms.untracked.int32(5)
 
-#process.dqmSaver.workflow = "A/B/C"
+process.dqmSaver.workflow = ''
 process.dqmSaver.convention = 'FilterUnit'
 process.dqmSaver.saveByLumiSection = True
 process.dqmSaver.fileFormat = cms.untracked.string('PB')
 
-#process.add_(cms.Service("Tracer"))
 
+#process.add_(cms.Service("Tracer"))

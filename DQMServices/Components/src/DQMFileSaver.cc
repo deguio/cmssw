@@ -299,7 +299,7 @@ DQMFileSaver::saveForFilterUnit(const std::string& rewrite, int run, int lumi) c
 	     enableMultiThread_ ? run : 0,
              (DQMStore::SaveReferenceTag) saveReference_,
              saveReferenceQMin_,
-             fileUpdate_ ? "UPDATE" : "RECREATE",
+	     fileUpdate_ ? "UPDATE" : "RECREATE",
 	     true);
   saveJson(run, lumi, filename_json, filename);
 }
