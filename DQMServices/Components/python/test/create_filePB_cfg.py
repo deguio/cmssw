@@ -66,14 +66,21 @@ if len(sys.argv) > 3:
 
 
 #----------------------------------------------------------#
-#global options
-process.DQMStore.LSbasedMode = cms.untracked.bool(True)
+### global options Online ###
+#process.DQMStore.LSbasedMode = cms.untracked.bool(True)
+#process.DQMStore.verbose = cms.untracked.int32(5)
+
+#process.dqmSaver.workflow = ''
+#process.dqmSaver.convention = 'FilterUnit'
+#process.dqmSaver.saveByLumiSection = True
+#process.dqmSaver.fileFormat = cms.untracked.string('ROOT')
+
+
+### global options Offline ###
 process.DQMStore.verbose = cms.untracked.int32(5)
 
-process.dqmSaver.workflow = ''
-process.dqmSaver.convention = 'FilterUnit'
-process.dqmSaver.saveByLumiSection = True
-process.dqmSaver.fileFormat = cms.untracked.string('PB')
-
+process.dqmSaver.workflow = '/A/B/C'
+process.dqmSaver.convention = 'Offline'
+process.dqmSaver.saveAtJobEnd = True
 
 #process.add_(cms.Service("Tracer"))

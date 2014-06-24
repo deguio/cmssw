@@ -91,6 +91,7 @@ DQMFileSaver::saveForOffline(const std::string &workflow, int run, int lumi) con
                "^(Reference/)?([^/]+)",
                rewrite,
                enableMultiThread_ ? run : 0,
+	       lumi,
                (DQMStore::SaveReferenceTag) saveReference_,
                saveReferenceQMin_,
                fileUpdate_ ? "UPDATE" : "RECREATE");
@@ -110,6 +111,7 @@ DQMFileSaver::saveForOffline(const std::string &workflow, int run, int lumi) con
                    systems[i]+"/EventInfo", "^(Reference/)?([^/]+)",
                    rewrite,
                    enableMultiThread_ ? run : 0,
+		   lumi,
                    DQMStore::SaveWithoutReference,
                    dqm::qstatus::STATUS_OK,
                    fileUpdate_ ? "UPDATE" : "RECREATE");
@@ -141,6 +143,7 @@ doSaveForOnline(DQMStore *store,
                 rxpat,
                 rewrite,
                 enableMultiThread ? run : 0,
+		0,
                 saveref,
                 saveRefQMin);
   else if (fileFormat == DQMFileSaver::PB)
@@ -276,6 +279,7 @@ DQMFileSaver::saveForFilterUnitPB(int run, int lumi) const
   dbe_->savePB(filename,
 	       filterName_,
 	       enableMultiThread_ ? run : 0,
+	       lumi,
 	       true);
   saveJson(run, lumi, filename_json, filename);
 }
@@ -297,6 +301,7 @@ DQMFileSaver::saveForFilterUnit(const std::string& rewrite, int run, int lumi) c
              "^(Reference/)?([^/]+)",
              rewrite,
 	     enableMultiThread_ ? run : 0,
+	     lumi,
              (DQMStore::SaveReferenceTag) saveReference_,
              saveReferenceQMin_,
 	     fileUpdate_ ? "UPDATE" : "RECREATE",
