@@ -50,3 +50,8 @@ process.schedule = cms.Schedule(
     process.dqmoffline_step,
     process.DQMoutput_step
     )
+
+process.options = cms.untracked.PSet(
+    numberOfThreads = cms.untracked.uint32(4),
+    numberOfStreams = cms.untracked.uint32(4)
+    )

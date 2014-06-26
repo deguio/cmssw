@@ -458,7 +458,7 @@ DQMStore::DQMStore(const edm::ParameterSet &pset, edm::ActivityRegistry& ar)
 	enableMultiThread_ = true;
       }
     });
-
+  std::cout << "enableMultiThread_ = " << enableMultiThread_ << std::endl;
 }
 
 DQMStore::DQMStore(const edm::ParameterSet &pset)
