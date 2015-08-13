@@ -1967,6 +1967,30 @@ DQMStore::getAllTags(std::vector<std::string> &into) const
   }
 }
 
+
+
+
+
+//fede
+void
+DQMStore::printFULLContent()
+{
+  std::string path;
+  MEMap::const_iterator i = data_.begin();
+  MEMap::const_iterator e = data_.end();
+  for ( ; i != e; ++i)
+    {
+      std::cout << "DQMStore::printFULLContent. Run: " << i->data_.run
+		<< " lumi: " << i->data_.lumi
+		<< " stream: " << i->data_.streamId
+		<< " module: " << i->data_.moduleId
+		<< "  " << i->getFullname()
+		<< std::endl;
+    }
+}
+
+
+
 /// get vector with children of folder, including all subfolders + their children;
 /// must use an exact pathname
 std::vector<MonitorElement*>
@@ -2002,6 +2026,16 @@ DQMStore::getAllContents(const std::string &path,
     }
     result.push_back(const_cast<MonitorElement *>(&*i));
   }
+
+  //save legacy modules when running MT
+  MonitorElement protoLegacy(cleaned, std::string(), 0);
+  protoLegacy.setLumi(lumi);
+  i = data_.lower_bound(protoLegacy);
+  for ( ; i != e && isSubdirectory(*cleaned, *i->data_.dirname); ++i) {
+    if (i->data_.run != 0 || i->data_.streamId != 0 || i->data_.moduleId != 0) break;
+    result.push_back(const_cast<MonitorElement *>(&*i));
+  }
+
   return result;
 }
 

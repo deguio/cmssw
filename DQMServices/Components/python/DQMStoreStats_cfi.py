@@ -12,3 +12,7 @@ dqmStoreStats = cms.EDAnalyzer("DQMStoreStats",
     runOnEndJob = cms.untracked.bool(False),
     dumpToFWJR = cms.untracked.bool(True)
 )
+
+dqmPrintStats = cms.EDAnalyzer("DQMPrintStats")
+dqmFillerLegacy = cms.EDAnalyzer("DQMFiller_legacy")
+dqmFillerNew = cms.EDAnalyzer("DQMFiller_new")

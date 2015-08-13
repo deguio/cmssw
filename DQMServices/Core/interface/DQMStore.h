@@ -614,6 +614,9 @@ class DQMStore
 
  public:
   void                          getAllTags(std::vector<std::string> &into) const;
+
+  void                          printFULLContent();
+
   std::vector<MonitorElement*>  getAllContents(const std::string &path,
                                                uint32_t runNumber = 0,
                                                uint32_t lumi = 0) const;
