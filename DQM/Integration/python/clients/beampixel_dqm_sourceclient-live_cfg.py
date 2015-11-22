@@ -38,7 +38,8 @@ process.load("Configuration.StandardSequences.RawToDigi_Data_cff")
 #from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, "74X_dataRun2_Prompt_v0", "")
 # Otherwise use this
-process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 
 
 #----------------------------

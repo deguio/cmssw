@@ -80,7 +80,8 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 #--------------------------
 # Condition for P5 cluster
 if (live):
-    process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
+    from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+    setGT(process)
 # Condition for lxplus
 elif(offlineTesting):
     process.load("DQM.Integration.config.FrontierCondition_GT_Offline_cfi") 

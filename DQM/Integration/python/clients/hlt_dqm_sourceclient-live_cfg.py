@@ -23,7 +23,8 @@ process.SiStripDetInfoFileReader = cms.Service("SiStripDetInfoFileReader")
 process.TkDetMap = cms.Service("TkDetMap")
 
 #---- for P5 (online) DB access
-process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 # Condition for lxplus
 #process.load("DQM.Integration.config.FrontierCondition_GT_Offline_cfi") 
 

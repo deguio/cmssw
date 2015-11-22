@@ -31,7 +31,8 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 process.load("Configuration/StandardSequences/MagneticField_cff")
 process.load("DQM.DTMonitorModule.dt_dqm_sourceclient_common_cff")
 #---- for P5 (online) DB access
-process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 #---- for offline DB
 #process.load("DQM.Integration.config.FrontierCondition_GT_Offline_cfi") 
 

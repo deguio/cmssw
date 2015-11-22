@@ -32,7 +32,8 @@ process.dqmSaver.tag = 'L1TStage1'
 process.DQMStore.referenceFileName = "/dqmdata/dqm/reference/l1t_reference.root"
 
 # Condition for P5 cluster
-process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 es_prefer_GlobalTag = cms.ESPrefer('GlobalTag')
 process.GlobalTag.RefreshEachRun = cms.untracked.bool(True)
 # Condition for lxplus

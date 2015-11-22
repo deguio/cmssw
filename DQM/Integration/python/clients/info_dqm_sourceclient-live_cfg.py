@@ -29,7 +29,8 @@ process.MessageLogger = cms.Service("MessageLogger",
 
 # Global tag
 # Condition for P5 cluster
-process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 # Condition for lxplus
 #process.load("DQM.Integration.config.FrontierCondition_GT_Offline_cfi") 
 

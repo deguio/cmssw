@@ -76,7 +76,8 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 # Global Tag
 #-------------------------------------------------
 # Condition for P5 cluster
-process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 
 
 #--------------------------------------

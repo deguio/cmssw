@@ -28,11 +28,12 @@ process.MessageLogger = cms.Service("MessageLogger",
 
 # Global tag
 # Condition for P5 cluster
-process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
 process.load("EventFilter.L1GlobalTriggerRawToDigi.l1GtUnpack_cfi")
 process.load("EventFilter.L1GlobalTriggerRawToDigi.l1GtEvmUnpack_cfi")
 process.load("EventFilter.L1GlobalTriggerRawToDigi.l1GtRecord_cfi")
 
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 import EventFilter.L1GlobalTriggerRawToDigi.l1GtUnpack_cfi
 gtDigis = EventFilter.L1GlobalTriggerRawToDigi.l1GtUnpack_cfi.l1GtUnpack.clone()
 import EventFilter.L1GlobalTriggerRawToDigi.l1GtEvmUnpack_cfi

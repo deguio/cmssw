@@ -24,8 +24,10 @@ process.load("DQM.EcalMonitorTasks.EcalMonitorTask_cfi")
 process.load("DQM.EcalMonitorClient.EcalMonitorClient_cfi")
 process.load("DQM.Integration.config.environment_cfi")
 process.load("FWCore.Modules.preScaler_cfi")
-process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
 process.load("DQM.Integration.config.inputsource_cfi")
+
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 
 ### Individual module setups ###
 

@@ -58,7 +58,8 @@ process.load("Configuration.StandardSequences.RawToDigi_Data_cff")
 # Calibration
 #---------------
 # Condition for P5 cluster
-process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 # Condition for lxplus
 #process.load("DQM.Integration.config.FrontierCondition_GT_Offline_cfi") 
 

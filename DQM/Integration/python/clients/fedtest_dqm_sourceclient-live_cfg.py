@@ -33,7 +33,8 @@ process.MessageLogger = cms.Service("MessageLogger",
                                     )
 
 # Global tag
-process.load("DQM.Integration.config.FrontierCondition_GT_cfi")
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 
 # Need for test in lxplus
 #process.load("DQM.Integration.config.FrontierCondition_GT_Offline_cfi")

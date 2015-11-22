@@ -75,7 +75,7 @@ process.es_pool0 = cms.ESSource(
    process.CondDBSetup,
    timetype = cms.string('runnumber'),
    ###connect = cms.string('frontier://FrontierProd/CMS_COND_31X_HCAL'),
-   connect = cms.string('frontier://(proxyurl=http://localhost:3128)(serverurl=http://localhost:8000/FrontierOnProd)(serverurl=http://localhost:8000/FrontierOn Prod)(retrieve-ziplevel=0)(failovertoserver=no)/CMS_COND_31X_HCAL'),
+   connect = cms.string('frontier://(proxyurl=http://localhost4:3128)(serverurl=http://localhost4:8000/FrontierOnProd)(serverurl=http://localhost4:8000/FrontierOn Prod)(retrieve-ziplevel=0)(failovertoserver=no)/CMS_COND_31X_HCAL'),
    authenticationMethod = cms.untracked.uint32(0),
    toGet = cms.VPSet(
        cms.PSet(
@@ -92,7 +92,7 @@ process.es_pool = cms.ESSource(
    #connect = cms.string('frontier://cmsfrontier.cern.ch:8000/FrontierPrep/CMS_COND_30X_HCAL'),
    #connect = cms.string('frontier://cmsfrontier.cern.ch:8000/FrontierProd/CMS_COND_31X_HCAL'),
    ###connect = cms.string('frontier://FrontierProd/CMS_COND_HCAL_000'),
-   connect = cms.string('frontier://(proxyurl=http://localhost:3128)(serverurl=http://localhost:8000/FrontierOnProd)(serverurl=http://localhost:8000/FrontierOn Prod)(retrieve-ziplevel=0)(failovertoserver=no)/CMS_COND_HCAL_000'),
+   connect = cms.string('frontier://(proxyurl=http://localhost4:3128)(serverurl=http://localhost4:8000/FrontierOnProd)(serverurl=http://localhost4:8000/FrontierOn Prod)(retrieve-ziplevel=0)(failovertoserver=no)/CMS_COND_HCAL_000'),
    authenticationMethod = cms.untracked.uint32(0),
    toGet = cms.VPSet(
        cms.PSet(

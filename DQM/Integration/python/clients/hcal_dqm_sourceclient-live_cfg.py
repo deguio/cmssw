@@ -26,15 +26,18 @@ useMap		= False
 #	Central DQM Stuff imports
 #-------------------------------------
 from DQM.Integration.config.online_customizations_cfi import *
-if useOfflineGT:
-	process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
-	process.GlobalTag.globaltag = '74X_dataRun2_HLT_v1'
-else:
-	process.load('DQM.Integration.config.FrontierCondition_GT_cfi')
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+
 if useFileInput:
 	process.load("DQM.Integration.config.fileinputsource_cfi")
 else:
 	process.load('DQM.Integration.config.inputsource_cfi')
+if useOfflineGT:
+	process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
+	process.GlobalTag.globaltag = '74X_dataRun2_HLT_v1'
+else:
+	setGT(process)
+
 process.load('DQMServices.Components.DQMEnvironment_cfi')
 process.load('DQM.Integration.config.environment_cfi')
 

@@ -15,13 +15,14 @@ process.MessageLogger = cms.Service(
 # DQM Environment:
 process.load('DQMServices.Core.DQM_cfg')
 process.load('DQM.Integration.config.environment_cfi')
-# Global tag:
-process.load('DQM.Integration.config.FrontierCondition_GT_cfi')
 # Input:
 process.load('DQM.Integration.config.inputsource_cfi')
 # Output:
 process.dqmEnv.subSystemFolder = 'FED'
 process.dqmSaver.tag = 'FED'
+# Global tag:
+from DQM.Integration.config.FrontierCondition_GT_cfi import setGT
+setGT(process)
 
 # Subsystem sequences
 
