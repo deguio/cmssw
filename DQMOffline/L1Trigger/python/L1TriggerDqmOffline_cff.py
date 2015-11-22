@@ -45,6 +45,7 @@ dqmEnvL1TEMU.subSystemFolder = 'L1TEMU'
 from DQMOffline.L1Trigger.L1TRate_Offline_cfi import *
 from DQMOffline.L1Trigger.L1TSync_Offline_cfi import *
 from DQMOffline.L1Trigger.L1TEmulatorMonitorOffline_cff import *  
+l1TdeRCT.rctSourceData = 'gctDigis'
 
 # DQM Offline Step 2 cfi/cff imports
 from DQMOffline.L1Trigger.L1TEmulatorMonitorClientOffline_cff import *
@@ -56,7 +57,7 @@ from DQMOffline.L1Trigger.L1TEmulatorMonitorClientOffline_cff import *
 #
 
 l1TriggerOnline = cms.Sequence(
-                               l1tMonitorOnline
+                               l1tMonitorStage1Online
                                 * dqmEnvL1T
                                )
                                     
@@ -68,7 +69,7 @@ l1TriggerOffline = cms.Sequence(
 #
  
 l1TriggerEmulatorOnline = cms.Sequence(
-                                l1HwValEmulatorMonitor
+                                l1Stage1HwValEmulatorMonitor
                                 * dqmEnvL1TEMU
                                 )
 
@@ -87,7 +88,7 @@ l1TriggerDqmOffline = cms.Sequence(
 
 # DQM Offline Step 2 sequence                                 
 l1TriggerDqmOfflineClient = cms.Sequence(
-                                l1tMonitorClient
+                                l1tMonitorStage1Client
                                 * l1EmulatorMonitorClient
                                 )
 
@@ -121,7 +122,8 @@ l1TriggerDqmOfflineClient = cms.Sequence(
 #
 #l1TriggerOnline.remove(l1tMonitorOnline)
 #
-l1tMonitorOnline.remove(bxTiming)
+l1tMonitorStage1Online.remove(bxTiming)
+l1Stage1HwValEmulatorMonitor.remove(l1tHIonImp)
 #l1tMonitorOnline.remove(l1tDttf)
 #l1tMonitorOnline.remove(l1tCsctf) 
 #l1tMonitorOnline.remove(l1tRpctf)
@@ -134,8 +136,8 @@ l1tMonitorOnline.remove(bxTiming)
 #l1ExtraDqmSeq.remove(l1ExtraDQM)
 #l1tMonitorOnline.remove(l1ExtraDqmSeq)
 #
-l1tMonitorOnline.remove(l1tRate)
-l1tMonitorOnline.remove(l1tBPTX)
+#l1tMonitorOnline.remove(l1tRate)
+#l1tMonitorOnline.remove(l1tBPTX)
 #l1tMonitorOnline.remove(l1tRctSeq)
 #l1tMonitorOnline.remove(l1tGctSeq)
 
@@ -168,7 +170,7 @@ l1tMonitorOnline.remove(l1tBPTX)
 #l1TriggerClients.remove(l1tRpctfClient)
 #l1TriggerClients.remove(l1tGmtClient)
 #l1TriggerClients.remove(l1tOccupancyClient)
-l1TriggerClients.remove(l1tTestsSummary)
+l1TriggerStage1Clients.remove(l1tTestsSummary)
 #l1TriggerClients.remove(l1tEventInfoClient)
                               
 # l1EmulatorMonitorClient sequence, defined in DQM/L1TMonitorClient/python/L1TEMUMonitorClient_cff.py
