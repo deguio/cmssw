@@ -126,5 +126,7 @@ HLTMonitoring = cms.Sequence( OfflineHLTMonitoring )
                                                                  
 DQMOfflineMiniAOD = cms.Sequence()
 
-DQMOfflineMiniAODEndPath = cms.Sequence(miniAODDQMSequence*jetMETDQMOfflineSourceMiniAOD*tracksDQMMiniAOD)
-DQMOfflineEndPath = cms.Sequence()
+#Post sequences are automatically placed in the EndPath by ConfigBuilder if PAT is run.
+#miniAOD DQM sequences need to access the filter results.
+PostDQMOfflineMiniAOD = cms.Sequence(miniAODDQMSequence*jetMETDQMOfflineSourceMiniAOD*tracksDQMMiniAOD)
+PostDQMOffline = cms.Sequence()
