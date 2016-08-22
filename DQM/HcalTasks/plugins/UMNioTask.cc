@@ -52,8 +52,13 @@ UMNioTask::UMNioTask(edm::ParameterSet const& ps):
 		new quantity::LumiSection(_maxLS),
 		new quantity::DetectorQuantity(quantity::fSubdetPM),
 		new quantity::ValueQuantity(quantity::ffC_10000, true));
+	_cTotalChargeProfile.initialize(_name, "TotalChargeProfile",
+		new quantity::LumiSection(_maxLS),
+		new quantity::DetectorQuantity(quantity::fSubdetPM),
+		new quantity::ValueQuantity(quantity::ffC_10000, true));
 	_cEventType.book(ib, _subsystem);
 	_cTotalCharge.book(ib, _subsystem);
+	_cTotalChargeProfile.book(ib, _subsystem);
 }
 
 /* virtual */ void UMNioTask::_process(edm::Event const& e,
@@ -88,18 +93,21 @@ UMNioTask::UMNioTask(edm::ParameterSet const& ps):
 	{
 		double sumQ = utilities::sumQ<HBHEDataFrame>(*it, 2.5, 0, it->size()-1);
 		_cTotalCharge.fill(it->id(), _currentLS, sumQ);
+		_cTotalChargeProfile.fill(it->id(), _currentLS, sumQ);
 	}
 	for (HODigiCollection::const_iterator it=cho->begin();
 		it!=cho->end(); ++it)
 	{
 		double sumQ = utilities::sumQ<HODataFrame>(*it, 8.5, 0, it->size()-1);
 		_cTotalCharge.fill(it->id(), _currentLS, sumQ);
+		_cTotalChargeProfile.fill(it->id(), _currentLS, sumQ);
 	}
 	for (HFDigiCollection::const_iterator it=chf->begin();
 		it!=chf->end(); ++it)
 	{
 		double sumQ = utilities::sumQ<HFDataFrame>(*it, 2.5, 0, it->size()-1);
 		_cTotalCharge.fill(it->id(), _currentLS, sumQ);
+		_cTotalChargeProfile.fill(it->id(), _currentLS, sumQ);
 	}
 }
 /* virtual */ void UMNioTask::endLuminosityBlock(edm::LuminosityBlock const& lb,
