@@ -57,7 +57,10 @@ class PedestalTask_904 : public DQTask
 		Container2D	_cTDCvsADC_EChannel[10];
 		Container1D _cTDC_EChannel[10];
 		Container1D _cADC_EChannel[10];
-		Container2D _cOccupancy_depth;
+
+		Container2D _cOccupancy_Crate;
+		Container2D _cOccupancy_CrateSlot;
+
 
 		//	Containers overall
 		ContainerSingleProf1D	_cShapeCut;

@@ -69,11 +69,27 @@ PedestalTask_904::PedestalTask_904(edm::ParameterSet const& ps):
 			new quantity::ValueQuantity(quantity::fN, true));
 	}
 
+	//OCCUPANCY
+	_cOccupancy_Crate.initialize(_name,
+				     "Occupancy", hashfunctions::fCrate,
+				     new quantity::ElectronicsQuantity(quantity::fSlotuTCA),
+				     new quantity::ElectronicsQuantity(quantity::fFiberuTCAFiberCh),
+				     new quantity::ValueQuantity(quantity::fN));
+	_cOccupancy_CrateSlot.initialize(_name,
+					 "Occupancy", hashfunctions::fCrateSlot,
+					 new quantity::ElectronicsQuantity(quantity::fFiberuTCA),
+					 new quantity::ElectronicsQuantity(quantity::fFiberCh),
+					 new quantity::ValueQuantity(quantity::fN));
+
+
 	_cShapeCut_EChannel.book(ib, _emap, _filter_C36, _subsystem);
 	_cShapeCut.book(ib, _subsystem);
 	_cTDCvsADC.book(ib, _subsystem);
 	_cTDC.book(ib, _subsystem);
 	_cADC.book(ib, _subsystem);
+	_cOccupancy_Crate.book(ib, _emap, _filter_C36, _subsystem);
+	_cOccupancy_CrateSlot.book(ib, _emap, _filter_C36, _subsystem);
+
 	for (unsigned int i=0; i<10; i++)
 	{
 		char aux[10];
@@ -82,6 +98,7 @@ PedestalTask_904::PedestalTask_904(edm::ParameterSet const& ps):
 		_cTDC_EChannel[i].book(ib, _emap, _filter_C36, _subsystem, aux);
 		_cADC_EChannel[i].book(ib, _emap, _filter_C36, _subsystem, aux);
 	}
+
 
 	_ehashmap.initialize(_emap, electronicsmap::fD2EHashMap, _filter_C36);
 }
@@ -108,12 +125,8 @@ PedestalTask_904::PedestalTask_904(edm::ParameterSet const& ps):
 		QIE11DataFrame frame = static_cast<QIE11DataFrame>((*cqie10)[i]);
 		DetId did = frame.detid();
 		HcalElectronicsId eid = HcalElectronicsId(_ehashmap.lookup(did));
-		// std::cout << eid << std::endl;
-		// std::cout << HcalDetId(did) << std::endl;
-
-		//	compute the signal, ped subracted
-//		double q = utilities::aveTS_v10<QIE11DataFrame>(frame,
-//			constants::adc2fC[_ped], 0, frame.samples()-1);
+		_cOccupancy_Crate.fill(eid);
+		_cOccupancy_CrateSlot.fill(eid);
 
 		//	iterate thru all TS and fill
 		for (int j=0; j<frame.samples(); j++)

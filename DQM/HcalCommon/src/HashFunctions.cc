@@ -313,7 +313,7 @@ namespace hcaldqm
 				utilities::hash(HcalElectronicsId(
 					FIBERCH_MIN, FIBER_VME_MIN, SPIGOT_MIN, eid.dccid())) :
 				utilities::hash(HcalElectronicsId(eid.crateId(),
-					SLOT_uTCA_MIN, FIBER_uTCA_MIN1, FIBERCH_MIN, false));
+					SLOT_uTCA_MIN, FIBER_uTCA_MIN, FIBERCH_MIN, false));
 		}
 
 		uint32_t hash_FEDSpigot(HcalElectronicsId const& eid)
@@ -323,7 +323,7 @@ namespace hcaldqm
 				utilities::hash(HcalElectronicsId(
 					FIBERCH_MIN, FIBER_VME_MIN, eid.spigot(), eid.dccid())) : 
 				utilities::hash(HcalElectronicsId(eid.crateId(),
-					eid.slot(), FIBER_uTCA_MIN1, FIBERCH_MIN, false));
+					eid.slot(), FIBER_uTCA_MIN, FIBERCH_MIN, false));
 		}
 
 		uint32_t hash_FEDSlot(HcalElectronicsId const& eid)
@@ -333,7 +333,7 @@ namespace hcaldqm
 				utilities::hash(HcalElectronicsId(FIBERCH_MIN,
 					FIBER_VME_MIN, eid.spigot(), eid.dccid())) :
 				utilities::hash(HcalElectronicsId(eid.crateId(),
-					eid.slot(), FIBER_uTCA_MIN1, FIBERCH_MIN, false));
+					eid.slot(), FIBER_uTCA_MIN, FIBERCH_MIN, false));
 		}
 
 		uint32_t hash_Crate(HcalElectronicsId const& eid)
@@ -343,7 +343,7 @@ namespace hcaldqm
 				utilities::hash(HcalElectronicsId(FIBERCH_MIN,
 					FIBER_VME_MIN, SPIGOT_MIN, eid.dccid())) :
 				utilities::hash(HcalElectronicsId(eid.crateId(),
-					SLOT_uTCA_MIN, FIBER_uTCA_MIN1, FIBERCH_MIN, false));
+					SLOT_uTCA_MIN, FIBER_uTCA_MIN, FIBERCH_MIN, false));
 		}
 
 		uint32_t hash_CrateSpigot(HcalElectronicsId const& eid)
@@ -354,7 +354,7 @@ namespace hcaldqm
 				utilities::hash(HcalElectronicsId(FIBERCH_MIN,
 					FIBER_VME_MIN, eid.spigot(), eid.dccid())) :
 				utilities::hash(HcalElectronicsId(eid.crateId(),
-					eid.slot(), FIBER_uTCA_MIN1, FIBERCH_MIN, false));
+					eid.slot(), FIBER_uTCA_MIN, FIBERCH_MIN, false));
 		}
 
 		uint32_t hash_CrateSlot(HcalElectronicsId const& eid)
@@ -363,7 +363,7 @@ namespace hcaldqm
 				utilities::hash(HcalElectronicsId(FIBERCH_MIN,
 					FIBER_VME_MIN, eid.spigot(), eid.dccid())) :
 				utilities::hash(HcalElectronicsId(eid.crateId(),
-					eid.slot(), FIBER_uTCA_MIN1, FIBERCH_MIN, false));
+					eid.slot(), FIBER_uTCA_MIN, FIBERCH_MIN, false));
 		}
 
 		uint32_t hash_Fiber(HcalElectronicsId const&)
@@ -387,7 +387,7 @@ namespace hcaldqm
 				utilities::hash(HcalElectronicsId(FIBERCH_MIN,
 					FIBER_VME_MIN, SPIGOT_MIN, CRATE_VME_MIN)):
 				utilities::hash(HcalElectronicsId(CRATE_uTCA_MIN,
-					SLOT_uTCA_MIN, FIBER_uTCA_MIN1, FIBERCH_MIN, false));
+					SLOT_uTCA_MIN, FIBER_uTCA_MIN, FIBERCH_MIN, false));
 /*			NOTE: as an update - should separate Trigger Eid and Det Eid
  *			return eid.isVMEid() ?
 				eid.isTriggerChainId()?
@@ -427,7 +427,7 @@ namespace hcaldqm
 			int fed = std::stoi(name.substr(3,name.length()-3),nullptr);
 			if (fed>=constants::FED_uTCA_MIN)
 				return HcalElectronicsId(utilities::fed2crate(fed),
-					SLOT_uTCA_MIN, FIBER_uTCA_MIN1, FIBERCH_MIN, false).rawId();
+					SLOT_uTCA_MIN, FIBER_uTCA_MIN, FIBERCH_MIN, false).rawId();
 			else
 				return HcalElectronicsId(FIBERCH_MIN,
 					FIBER_VME_MIN, SPIGOT_MIN, fed-FED_VME_MIN).rawId();
@@ -452,7 +452,7 @@ namespace hcaldqm
 			int s = std::stoi(name.substr(pos+1, name.length()-pos-1), nullptr);
 			if (fed>=FED_uTCA_MIN)
 				return HcalElectronicsId(utilities::fed2crate(fed),
-					s, FIBER_uTCA_MIN1, FIBERCH_MIN, false).rawId();
+					s, FIBER_uTCA_MIN, FIBERCH_MIN, false).rawId();
 			else
 				return HcalElectronicsId(FIBERCH_MIN,
 					FIBER_VME_MIN, s, fed-FED_VME_MIN).rawId();
@@ -477,7 +477,7 @@ namespace hcaldqm
 			int s = std::stoi(name.substr(pos+1, name.length()-pos-1), nullptr);
 			if (fed>=FED_uTCA_MIN)
 				return HcalElectronicsId(utilities::fed2crate(fed),
-					s, FIBER_uTCA_MIN1, FIBERCH_MIN, false).rawId();
+					s, FIBER_uTCA_MIN, FIBERCH_MIN, false).rawId();
 			else
 				return HcalElectronicsId(FIBERCH_MIN,
 					FIBER_VME_MIN, s, fed-FED_VME_MIN).rawId();
@@ -561,7 +561,7 @@ namespace hcaldqm
 					FIBER_VME_MIN, SPIGOT_MIN, CRATE_VME_MIN).rawId();
 			else
 				return HcalElectronicsId(CRATE_uTCA_MIN,
-					SLOT_uTCA_MIN, FIBER_uTCA_MIN1, FIBERCH_MIN, false).rawId();
+					SLOT_uTCA_MIN, FIBER_uTCA_MIN, FIBERCH_MIN, false).rawId();
 
 			return HcalElectronicsId().rawId();
 		}

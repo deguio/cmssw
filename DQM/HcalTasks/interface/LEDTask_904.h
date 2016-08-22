@@ -1,12 +1,6 @@
 #ifndef LEDTask_904_h
 #define LEDTask_904_h
 
-/*
- *	file:			LEDTask_904.h
- *	Author:			Viktor Khristenko
- *	Date:			16.10.2015
- */
-
 #include "DQM/HcalCommon/interface/DQTask.h"
 #include "DQM/HcalCommon/interface/Utilities.h"
 #include "DQM/HcalCommon/interface/ElectronicsMap.h"
@@ -47,17 +41,28 @@ class LEDTask_904 : public DQTask
   
   
   //	1D
-  ContainerProf1D         _cShapeCut_EChannel;
-  
-  Container1D		_cSignalMean_EChannel;
+  ContainerProf1D       _cShapeCut_EChannel;
+  Container1D           _cADC_EChannel[10];
+
+  Container1D		_cSignal_EChannel;
   Container1D		_cTimingMean_EChannel;
+  Container1D           _cTiming_EChannel;
   
+  //	2D Maps 
+  Container2D _cOccupancy_Crate;
+  ContainerProf2D _cSignal_Crate;
+  ContainerProf2D _cTiming_Crate;
   
+  Container2D _cOccupancy_CrateSlot;
+  ContainerProf2D _cSignal_CrateSlot;
+  ContainerProf2D _cTiming_CrateSlot;
   
   //containers overall
   ContainerSingleProf1D   _cShapeCut;
-  
-  ContainerSingle1D       _cSignalMean;
+  ContainerSingle1D       _cADC;
+  ContainerSingle1D       _cTiming;
+
+  ContainerSingle1D       _cSignal;
   ContainerSingle1D       _cTimingMean;
   
 };

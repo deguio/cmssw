@@ -66,11 +66,6 @@ namespace hcaldqm
 		int getValue_FiberuTCA(HcalElectronicsId const& eid)
 		{
 			int fiber = eid.fiberIndex();
-			if (fiber<=FIBER_uTCA_MAX1)
-				fiber-=FIBER_uTCA_MIN1;
-			else
-				fiber = (FIBER_uTCA_MAX1-FIBER_uTCA_MIN1+1) + 
-					fiber-FIBER_uTCA_MIN2;
 			return fiber;
 		}
 
@@ -262,7 +257,7 @@ namespace hcaldqm
 			return v<FED_VME_NUM ? HcalElectronicsId(FIBERCH_MIN,
 				FIBER_VME_MIN, SPIGOT_MIN, v) :
 				HcalElectronicsId(utilities::fed2crate(v-FED_VME_NUM+1100),
-				SLOT_uTCA_MIN, FIBER_uTCA_MIN1,
+				SLOT_uTCA_MIN, FIBER_uTCA_MIN,
 				FIBERCH_MIN, false);
 		}
 
@@ -275,7 +270,7 @@ namespace hcaldqm
 		HcalElectronicsId getEid_FEDuTCA(int v)
 		{
 			return HcalElectronicsId(utilities::fed2crate(v+1100),
-				SLOT_uTCA_MIN, FIBER_uTCA_MIN1, FIBERCH_MIN, false);
+				SLOT_uTCA_MIN, FIBER_uTCA_MIN, FIBERCH_MIN, false);
 		}
 
 		HcalElectronicsId getEid_Crate(int v)
@@ -283,7 +278,7 @@ namespace hcaldqm
 			return v<CRATE_VME_NUM ?
 				HcalElectronicsId(FIBERCH_MIN, FIBER_VME_MIN, SPIGOT_MIN, v) :
 				HcalElectronicsId(v-CRATE_VME_NUM+CRATE_uTCA_MIN,
-					SLOT_uTCA_MIN, FIBER_uTCA_MIN1, FIBERCH_MIN, false);
+					SLOT_uTCA_MIN, FIBER_uTCA_MIN, FIBERCH_MIN, false);
 		}
 
 		HcalElectronicsId getEid_CrateVME(int v)
@@ -295,13 +290,13 @@ namespace hcaldqm
 		HcalElectronicsId getEid_CrateuTCA(int v)
 		{
 			return HcalElectronicsId(v+CRATE_uTCA_MIN,
-				SLOT_uTCA_MIN, FIBER_uTCA_MIN1, FIBERCH_MIN, false);
+				SLOT_uTCA_MIN, FIBER_uTCA_MIN, FIBERCH_MIN, false);
 		}
 
 		HcalElectronicsId getEid_SlotuTCA(int v)
 		{
 			return HcalElectronicsId(CRATE_uTCA_MIN,
-				v+SLOT_uTCA_MIN, FIBER_uTCA_MIN1, FIBERCH_MIN, false);
+				v+SLOT_uTCA_MIN, FIBER_uTCA_MIN, FIBERCH_MIN, false);
 		}
 
 		//	nothing for now...
@@ -321,10 +316,7 @@ namespace hcaldqm
 		HcalElectronicsId getEid_FiberuTCA(int v)
 		{
 			return HcalElectronicsId(CRATE_uTCA_MIN,
-				SLOT_uTCA_MIN, v<(FIBER_uTCA_MAX1-FIBER_uTCA_MIN1+1)?
-				v+FIBER_uTCA_MIN1 : v-(FIBER_uTCA_MAX1-FIBER_uTCA_MIN1+1)+
-				FIBER_uTCA_MIN2,
-				FIBERCH_MIN, false);
+				SLOT_uTCA_MIN, v, FIBERCH_MIN, false);
 		}
 		
 		HcalElectronicsId getEid_FiberVME(int v)
@@ -336,7 +328,7 @@ namespace hcaldqm
 		HcalElectronicsId getEid_FiberCh(int v)
 		{
 			return HcalElectronicsId(CRATE_uTCA_MIN, SLOT_uTCA_MIN,
-				FIBER_uTCA_MIN1, v, false);
+				FIBER_uTCA_MIN, v, false);
 		}
 
 		HcalElectronicsId getEid_FEDuTCASlot(int v)
@@ -344,7 +336,7 @@ namespace hcaldqm
 			HcalElectronicsId fedeid = getEid_FEDuTCA(v/SLOT_uTCA_NUM);
 			HcalElectronicsId sloteid = getEid_SlotuTCA(v%SLOT_uTCA_NUM);
 			return HcalElectronicsId(
-				fedeid.crateId(), sloteid.slot(), FIBER_uTCA_MIN1,
+				fedeid.crateId(), sloteid.slot(), FIBER_uTCA_MIN,
 				FIBERCH_MIN, false);
 		}
 
