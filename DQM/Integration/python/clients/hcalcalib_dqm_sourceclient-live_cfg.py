@@ -100,6 +100,8 @@ process.hbhereco = process.hbheprereco.clone()
 process.load("DQM.HcalTasks.PedestalTask")
 process.load('DQM.HcalTasks.RawTask')
 process.load('DQM.HcalTasks.HcalOnlineHarvesting')
+process.load("DQM.HcalTasks.HFRaddamTask")
+process.load('DQM.HcalTasks.QIE11Task')
 
 #-------------------------------------
 #	To force using uTCA
@@ -122,11 +124,58 @@ process.rawTask.tagFEDs = rawTagUntracked
 process.rawTask.tagReport = cms.untracked.InputTag("hcalDigis")
 
 #-------------------------------------
+<<<<<<< HEAD
+=======
+#	Prepare all the Laser Tasks
+#-------------------------------------
+process.hbhehpdTask = process.laserTask.clone()
+process.hbhehpdTask.name = cms.untracked.string("HBHEHPDTask")
+process.hbhehpdTask.laserType = cms.untracked.uint32(3)
+
+process.hoTask = process.laserTask.clone()
+process.hoTask.name = cms.untracked.string("HOTask")
+process.hoTask.laserType = cms.untracked.uint32(4)
+
+process.hfTask = process.laserTask.clone()
+process.hfTask.name = cms.untracked.string("HFTask")
+process.hfTask.laserType = cms.untracked.uint32(5)
+
+process.hepmegaTask = process.laserTask.clone()
+process.hepmegaTask.name = cms.untracked.string("HEPMegaTask")
+process.hepmegaTask.laserType = cms.untracked.uint32(7)
+
+process.hemmegaTask = process.laserTask.clone()
+process.hemmegaTask.name = cms.untracked.string("HEMMegaTask")
+process.hemmegaTask.laserType = cms.untracked.uint32(8)
+
+process.hbpmegaTask = process.laserTask.clone()
+process.hbpmegaTask.name = cms.untracked.string("HBPMegaTask")
+process.hbpmegaTask.laserType = cms.untracked.uint32(9)
+
+process.hbmmegaTask = process.laserTask.clone()
+process.hbmmegaTask.name = cms.untracked.string("HBMMegaTask")
+process.hbmmegaTask.laserType = cms.untracked.uint32(10)
+
+process.qie11Task.runkeyVal = runType
+process.qie11Task.runkeyName = runTypeName
+process.qie11Task.tagQIE11 = cms.untracked.InputTag("hcalDigis")
+process.qie11Task.subsystem = cms.untracked.string("HcalCalib")
+
+#-------------------------------------
 #	Hcal DQM Tasks Sequence Definition
 #-------------------------------------
 process.tasksSequence = cms.Sequence(
 		process.pedestalTask
 		*process.rawTask
+		*process.hbhehpdTask
+		*process.hoTask
+		*process.hfTask
+		*process.hepmegaTask
+		*process.hemmegaTask
+		*process.hbpmegaTask
+		*process.hbmmegaTask
+		*process.umnioTask
+		*process.qie11Task
 )
 
 process.harvestingSequence = cms.Sequence(
