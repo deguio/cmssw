@@ -124,8 +124,6 @@ process.rawTask.tagFEDs = rawTagUntracked
 process.rawTask.tagReport = cms.untracked.InputTag("hcalDigis")
 
 #-------------------------------------
-<<<<<<< HEAD
-=======
 #	Prepare all the Laser Tasks
 #-------------------------------------
 process.hbhehpdTask = process.laserTask.clone()
@@ -160,6 +158,7 @@ process.qie11Task.runkeyVal = runType
 process.qie11Task.runkeyName = runTypeName
 process.qie11Task.tagQIE11 = cms.untracked.InputTag("hcalDigis")
 process.qie11Task.subsystem = cms.untracked.string("HcalCalib")
+process.qie11Task.laserType = cms.untracked.int32(12)
 
 #-------------------------------------
 #	Hcal DQM Tasks Sequence Definition
