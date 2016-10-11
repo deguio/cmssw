@@ -111,16 +111,16 @@ LEDTask_904::LEDTask_904(edm::ParameterSet const& ps):
     }
   
   //	BOOK
-  _cShapeCut_EChannel.book(ib, _emap, _filter_C36, _subsystem);
-  _cTiming_EChannel.book(ib, _emap, _filter_C36, _subsystem);
-  _cSignal_EChannel.book(ib, _emap, _filter_C36, _subsystem);
+  _cShapeCut_EChannel.book(ib, _emap, _subsystem);
+  _cTiming_EChannel.book(ib, _emap, _subsystem);
+  _cSignal_EChannel.book(ib, _emap, _subsystem);
   _cSignal.book(ib, _subsystem);
-  _cOccupancy_Crate.book(ib, _emap, _filter_C36, _subsystem);
-  _cOccupancy_CrateSlot.book(ib, _emap, _filter_C36, _subsystem);
-  _cSignal_Crate.book(ib, _emap, _filter_C36, _subsystem);
-  _cTiming_Crate.book(ib, _emap, _filter_C36, _subsystem);
-  _cSignal_CrateSlot.book(ib, _emap, _filter_C36, _subsystem);
-  _cTiming_CrateSlot.book(ib, _emap, _filter_C36, _subsystem);
+  _cOccupancy_Crate.book(ib, _emap, _subsystem);
+  _cOccupancy_CrateSlot.book(ib, _emap, _subsystem);
+  _cSignal_Crate.book(ib, _emap, _subsystem);
+  _cTiming_Crate.book(ib, _emap, _subsystem);
+  _cSignal_CrateSlot.book(ib, _emap, _subsystem);
+  _cTiming_CrateSlot.book(ib, _emap, _subsystem);
   _cShapeCut.book(ib, _subsystem);
   _cTiming.book(ib, _subsystem);
   _cADC.book(ib, _subsystem);
@@ -128,10 +128,10 @@ LEDTask_904::LEDTask_904(edm::ParameterSet const& ps):
     {
       char aux[10];
       sprintf(aux, "TS%d", i);
-      _cADC_EChannel[i].book(ib, _emap, _filter_C36, _subsystem, aux);
+      _cADC_EChannel[i].book(ib, _emap, _subsystem, aux);
     }
   
-  _ehashmap.initialize(_emap, electronicsmap::fD2EHashMap, _filter_C36);
+  _ehashmap.initialize(_emap, electronicsmap::fD2EHashMap);
 }
 
 /* virtual */ void LEDTask_904::_resetMonitors(UpdateFreq uf)

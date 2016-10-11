@@ -173,19 +173,31 @@ LEDTask::LEDTask(edm::ParameterSet const& ps):
 	_cTimingMean_depth.book(ib, _emap, _subsystem);
 	_cTimingRMS_depth.book(ib, _emap, _subsystem);
 
-	_cSignalMean_FEDVME.book(ib, _emap, _filter_uTCA, _subsystem);
-	_cSignalMean_FEDuTCA.book(ib, _emap, _filter_VME, _subsystem);
-	_cSignalRMS_FEDVME.book(ib, _emap, _filter_uTCA, _subsystem);
-	_cSignalRMS_FEDuTCA.book(ib, _emap, _filter_VME, _subsystem);
-	_cTimingMean_FEDVME.book(ib, _emap, _filter_uTCA, _subsystem);
-	_cTimingMean_FEDuTCA.book(ib, _emap, _filter_VME, _subsystem);
-	_cTimingRMS_FEDVME.book(ib, _emap, _filter_uTCA, _subsystem);
-	_cTimingRMS_FEDuTCA.book(ib, _emap, _filter_VME, _subsystem);
+	_cSignalMean_FEDVME.book(ib, _emap, _subsystem);
+	_cSignalMean_FEDuTCA.book(ib, _emap, _subsystem);
+	_cSignalRMS_FEDVME.book(ib, _emap, _subsystem);
+	_cSignalRMS_FEDuTCA.book(ib, _emap, _subsystem);
+	_cTimingMean_FEDVME.book(ib, _emap, _subsystem);
+	_cTimingMean_FEDuTCA.book(ib, _emap, _subsystem);
+	_cTimingRMS_FEDVME.book(ib, _emap, _subsystem);
+	_cTimingRMS_FEDuTCA.book(ib, _emap, _subsystem);
+
+	// _cSignalMean_FEDVME.book(ib, _emap, _filter_uTCA, _subsystem);
+	// _cSignalMean_FEDuTCA.book(ib, _emap, _filter_VME, _subsystem);
+	// _cSignalRMS_FEDVME.book(ib, _emap, _filter_uTCA, _subsystem);
+	// _cSignalRMS_FEDuTCA.book(ib, _emap, _filter_VME, _subsystem);
+	// _cTimingMean_FEDVME.book(ib, _emap, _filter_uTCA, _subsystem);
+	// _cTimingMean_FEDuTCA.book(ib, _emap, _filter_VME, _subsystem);
+	// _cTimingRMS_FEDVME.book(ib, _emap, _filter_uTCA, _subsystem);
+	// _cTimingRMS_FEDuTCA.book(ib, _emap, _filter_VME, _subsystem);
 
 	_cShapeCut_FEDSlot.book(ib, _emap, _subsystem);
 	_cMissing_depth.book(ib, _emap, _subsystem);
-	_cMissing_FEDVME.book(ib, _emap, _filter_uTCA, _subsystem);
-	_cMissing_FEDuTCA.book(ib, _emap, _filter_VME, _subsystem);
+	// _cMissing_FEDVME.book(ib, _emap, _filter_uTCA, _subsystem);
+	// _cMissing_FEDuTCA.book(ib, _emap, _filter_VME, _subsystem);
+
+	_cMissing_FEDVME.book(ib, _emap, _subsystem);
+	_cMissing_FEDuTCA.book(ib, _emap, _subsystem);
 
 	_xSignalSum.book(_emap);
 	_xSignalSum2.book(_emap);
