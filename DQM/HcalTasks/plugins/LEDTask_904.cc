@@ -24,18 +24,36 @@ LEDTask_904::LEDTask_904(edm::ParameterSet const& ps):
   es.get<HcalDbRecord>().get(dbService);
   _emap = dbService->getHcalMapping();
   
-  std::vector<uint32_t> vhashC36;
-  vhashC36.push_back(HcalElectronicsId(63, 1,
-				       FIBER_uTCA_MIN1, FIBERCH_MIN, false).rawId());
-  _filter_C36.initialize(filter::fPreserver, hashfunctions::fCrate,
-			 vhashC36);
-  
   //	INITIALIZE
-  //SHAPE
-  _cShapeCut_EChannel.initialize(_name,
-				 "ShapeCut",hashfunctions::fEChannel,
-				 new quantity::ValueQuantity(quantity::fTiming_TS),
-				 new quantity::ValueQuantity(quantity::fQIE10fC_300000));
+  // create a slot filter and initialize what you need
+  unsigned int itr=0;
+  for(unsigned int crate=61; crate <= 63; ++crate)
+    for(unsigned int slot=SLOT_uTCA_MIN; slot<=SLOT_uTCA_MAX; ++slot)
+      {
+	std::vector<uint32_t> vhashSlot;
+	vhashSlot.push_back(HcalElectronicsId(crate, slot, FIBER_uTCA_MIN1, FIBERCH_MIN, false).rawId());
+	_filter_slot[itr].initialize(filter::fPreserver, hashfunctions::fCrateSlot, vhashSlot);
+
+	_cShapeCut_EChannel[itr].initialize(_name,
+				       "ShapeCut",hashfunctions::fEChannel,
+				       new quantity::ValueQuantity(quantity::fTiming_TS),
+				       new quantity::ValueQuantity(quantity::fQIE10fC_300000));
+
+	_cSignal_EChannel[itr].initialize(_name,
+				     "Signal",hashfunctions::fEChannel,
+				     new quantity::ValueQuantity(quantity::ffC_3000),
+				     new quantity::ValueQuantity(quantity::fN, true));
+	
+	_cTiming_EChannel[itr].initialize(_name,
+				     "Timing",hashfunctions::fEChannel,
+				     new quantity::ValueQuantity(quantity::fTiming_TS200),
+				     new quantity::ValueQuantity(quantity::fN, true));
+
+	++itr;
+
+      }
+
+
   _cShapeCut.initialize(_name,
 			"ShapeCut", 
 			new quantity::ValueQuantity(quantity::fTiming_TS),
@@ -74,10 +92,6 @@ LEDTask_904::LEDTask_904(edm::ParameterSet const& ps):
 	new quantity::ElectronicsQuantity(quantity::fFiberuTCA),
 	new quantity::ElectronicsQuantity(quantity::fFiberCh),
 	new quantity::ValueQuantity(quantity::fQIE10fC_300000));
-  _cSignal_EChannel.initialize(_name,
-	 "Signal",hashfunctions::fEChannel,
-	 new quantity::ValueQuantity(quantity::ffC_3000),
-	 new quantity::ValueQuantity(quantity::fN, true));
 
 
 
@@ -97,23 +111,23 @@ LEDTask_904::LEDTask_904(edm::ParameterSet const& ps):
 	new quantity::ElectronicsQuantity(quantity::fFiberuTCA),
 	new quantity::ElectronicsQuantity(quantity::fFiberCh),
 	new quantity::ValueQuantity(quantity::fTiming_TS200));
-  _cTiming_EChannel.initialize(_name,
-	"Timing",hashfunctions::fEChannel,
-	new quantity::ValueQuantity(quantity::fTiming_TS200),
-	new quantity::ValueQuantity(quantity::fN, true));
   
-  for (unsigned int j=0; j<10; j++)
-    {
-      _cADC_EChannel[j].initialize(_name,
-				   "ADC", hashfunctions::fEChannel,
-				   new quantity::ValueQuantity(quantity::fQIE10ADC_256),
-				   new quantity::ValueQuantity(quantity::fN, true));
-    }
   
   //	BOOK
-  _cShapeCut_EChannel.book(ib, _emap, _subsystem);
-  _cTiming_EChannel.book(ib, _emap, _subsystem);
-  _cSignal_EChannel.book(ib, _emap, _subsystem);
+
+  itr = 0;
+  for(unsigned int crate=61; crate <= 63; ++crate)
+    for(unsigned int slot=SLOT_uTCA_MIN; slot<=SLOT_uTCA_MAX; ++slot)
+      {
+	char aux[100];
+	sprintf(aux, "/Crate%d_Slot%d", crate, slot);
+
+	_cShapeCut_EChannel[itr].book(ib, _emap, _filter_slot[itr], _subsystem ,aux);
+	_cTiming_EChannel[itr].book(ib, _emap, _filter_slot[itr], _subsystem, aux);
+	_cSignal_EChannel[itr].book(ib, _emap, _filter_slot[itr], _subsystem, aux);
+
+	++itr;
+      }
   _cSignal.book(ib, _subsystem);
   _cOccupancy_Crate.book(ib, _emap, _subsystem);
   _cOccupancy_CrateSlot.book(ib, _emap, _subsystem);
@@ -124,12 +138,6 @@ LEDTask_904::LEDTask_904(edm::ParameterSet const& ps):
   _cShapeCut.book(ib, _subsystem);
   _cTiming.book(ib, _subsystem);
   _cADC.book(ib, _subsystem);
-  for (unsigned int i=0; i<10; i++)
-    {
-      char aux[10];
-      sprintf(aux, "TS%d", i);
-      _cADC_EChannel[i].book(ib, _emap, _subsystem, aux);
-    }
   
   _ehashmap.initialize(_emap, electronicsmap::fD2EHashMap);
 }
@@ -161,14 +169,14 @@ LEDTask_904::LEDTask_904(edm::ParameterSet const& ps):
       //iterate thru all TS and fill      
       double sumQ = 0;
       double onlinePed = (adc2fC[frame[0].adc()]+adc2fC[frame[1].adc()])/2.;
+      int index = (eid.crateId() - 61)*12+eid.slot()-1;
+
       for (int j=0; j<frame.samples(); j++)
 	{
 	  //shapes are after the cut
-	  _cShapeCut_EChannel.fill(eid, j, adc2fC[frame[j].adc()]);
+	  _cShapeCut_EChannel[index].fill(eid, j, adc2fC[frame[j].adc()]);
 	  _cShapeCut.fill(eid, j, adc2fC[frame[j].adc()]);
 
-
-	  _cADC_EChannel[j].fill(eid, frame[j].adc());
 	  _cADC.fill(eid, frame[j].adc());
 	  
 	  //pedestal subtracted mean charge
@@ -180,12 +188,12 @@ LEDTask_904::LEDTask_904(edm::ParameterSet const& ps):
       _cSignal.fill(eid, sumQ); 
       _cSignal_Crate.fill(eid, sumQ);
       _cSignal_CrateSlot.fill(eid, sumQ);
-      _cSignal_EChannel.fill(eid, sumQ); 
+      _cSignal_EChannel[index].fill(eid, sumQ); 
 
       _cTiming.fill(eid, timing);
       _cTiming_Crate.fill(eid, timing);
       _cTiming_CrateSlot.fill(eid, timing);
-      _cTiming_EChannel.fill(eid, timing);
+      _cTiming_EChannel[index].fill(eid, timing);
       
       
     }

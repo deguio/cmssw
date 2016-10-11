@@ -133,6 +133,8 @@ PedestalTask_904::PedestalTask_904(edm::ParameterSet const& ps):
 		QIE11DataFrame frame = static_cast<QIE11DataFrame>((*cqie10)[i]);
 		DetId did = frame.detid();
 		HcalElectronicsId eid = HcalElectronicsId(_ehashmap.lookup(did));
+		int index = (eid.crateId() - 61)*12+eid.slot()-1;
+
 		_cOccupancy_Crate.fill(eid);
 		_cOccupancy_CrateSlot.fill(eid);
 
@@ -140,7 +142,6 @@ PedestalTask_904::PedestalTask_904(edm::ParameterSet const& ps):
 		for (int j=0; j<frame.samples(); j++)
 		  {
 		        //	shapes are after the cut
-		        int index = (eid.crateId() - 61)*12+eid.slot()-1;
 			_cShapeCut_EChannel[index].fill(eid, j, adc2fC[frame[j].adc()]);
 
 			_cShapeCut.fill(eid, j, adc2fC[frame[j].adc()]);

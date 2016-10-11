@@ -33,20 +33,19 @@ class LEDTask_904 : public DQTask
   //	emap
   HcalElectronicsMap const* _emap;
   electronicsmap::ElectronicsMap _ehashmap;
-  HashFilter _filter_C36;
+
+  //    filters
+  HashFilter _filter_slot[36];
   
   //	Cuts
   double _cut;
-  int _ped;
-  
+  int    _ped;
   
   //	1D
-  ContainerProf1D       _cShapeCut_EChannel;
-  Container1D           _cADC_EChannel[10];
+  ContainerProf1D       _cShapeCut_EChannel[36];
 
-  Container1D		_cSignal_EChannel;
-  Container1D		_cTimingMean_EChannel;
-  Container1D           _cTiming_EChannel;
+  Container1D		_cSignal_EChannel[36];
+  Container1D           _cTiming_EChannel[36];
   
   //	2D Maps 
   Container2D _cOccupancy_Crate;
@@ -61,9 +60,7 @@ class LEDTask_904 : public DQTask
   ContainerSingleProf1D   _cShapeCut;
   ContainerSingle1D       _cADC;
   ContainerSingle1D       _cTiming;
-
   ContainerSingle1D       _cSignal;
-  ContainerSingle1D       _cTimingMean;
   
 };
 
