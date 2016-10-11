@@ -43,27 +43,30 @@ class PedestalTask_904 : public DQTask
 
 		//	cuts/constants from input
 		double _cut;
-		int _ped;
+		int    _ped;
 
 		//	filters
-		HashFilter _filter_C36;
+		HashFilter _filter_slot[36];
 
 		//	Electronics Maps/Hashes
 		HcalElectronicsMap const* _emap;
 		ElectronicsMap _ehashmap;
 		
 		//	Containers
-		ContainerProf1D	_cShapeCut_EChannel;
-		Container2D	_cTDCvsADC_EChannel[10];
-		Container1D _cTDC_EChannel[10];
-		Container1D _cADC_EChannel[10];
 
+		//provide pulse shape per channel organized in slots
+		ContainerProf1D	_cShapeCut_EChannel[36];
+		Container1D _cTDC_EChannel[36];
+		Container1D _cADC_EChannel[36];
+
+
+		//      Occupancy
 		Container2D _cOccupancy_Crate;
 		Container2D _cOccupancy_CrateSlot;
 
 
 		//	Containers overall
-		ContainerSingleProf1D	_cShapeCut;
+		ContainerSingleProf1D	        _cShapeCut;
 		ContainerSingle2D		_cTDCvsADC;
 		ContainerSingle1D		_cTDC;
 		ContainerSingle1D		_cADC;
