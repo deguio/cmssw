@@ -41,7 +41,7 @@ LEDTask_904::LEDTask_904(edm::ParameterSet const& ps):
 
 	_cSignal_EChannel[itr].initialize(_name,
 				     "Signal",hashfunctions::fEChannel,
-				     new quantity::ValueQuantity(quantity::ffC_3000),
+				     new quantity::ValueQuantity(quantity::fQIE10fC_300000),
 				     new quantity::ValueQuantity(quantity::fN, true));
 	
 	_cTiming_EChannel[itr].initialize(_name,
@@ -80,7 +80,7 @@ LEDTask_904::LEDTask_904(edm::ParameterSet const& ps):
   //SIGNAL
   _cSignal.initialize(_name,
         "Signal",
-        new quantity::ValueQuantity(quantity::ffC_3000),
+        new quantity::ValueQuantity(quantity::fQIE10fC_300000),
         new quantity::ValueQuantity(quantity::fN, true));
   _cSignal_Crate.initialize(_name, 
 	"Signal", hashfunctions::fCrate,
