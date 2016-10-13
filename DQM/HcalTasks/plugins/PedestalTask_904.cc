@@ -128,12 +128,14 @@ PedestalTask_904::PedestalTask_904(edm::ParameterSet const& ps):
 	if (!e.getByToken(_tokQIE11, cqie10))
 		std::cout << "Collection isn't available" << std::endl;
 
+
 	for (uint32_t i=0; i<cqie10->size(); i++)
 	{
 		QIE11DataFrame frame = static_cast<QIE11DataFrame>((*cqie10)[i]);
 		DetId did = frame.detid();
 		HcalElectronicsId eid = HcalElectronicsId(_ehashmap.lookup(did));
 		int index = (eid.crateId() - 61)*12+eid.slot()-1;
+
 
 		_cOccupancy_Crate.fill(eid);
 		_cOccupancy_CrateSlot.fill(eid);
@@ -147,7 +149,7 @@ PedestalTask_904::PedestalTask_904(edm::ParameterSet const& ps):
 			_cShapeCut.fill(eid, j, adc2fC[frame[j].adc()]);
 
 			//	w/o a cut
-			_cTDCvsADC.fill(eid, frame[j].adc(), frame[j].tdc());
+			_cTDCvsADC.fill(frame[j].adc(), frame[j].tdc());
 
 			_cTDC_EChannel[index].fill(eid, frame[j].tdc());
 			_cTDC.fill(eid, frame[j].tdc());
@@ -157,6 +159,7 @@ PedestalTask_904::PedestalTask_904(edm::ParameterSet const& ps):
 
 		}
 	}
+
 }
 
 /* virtual */ void PedestalTask_904::_resetMonitors(UpdateFreq)
