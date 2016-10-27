@@ -26,7 +26,7 @@ commonDict = {
         5 : [
             'Geometry/CMSCommonData/data/FieldParameters.xml',
         ],
-        "era" : "self.run2_common, self.phase2_common",
+        "era" : "run2_common, phase2_common",
     }
 }
 
@@ -101,7 +101,7 @@ trackerDict = {
             'from Geometry.TrackerGeometryBuilder.idealForDigiTrackerGeometry_cff import *',
             'trackerGeometry.applyAlignment = cms.bool(False)',
         ],
-        "era" : "self.phase2_tracker, self.trackingPhase2PU140",
+        "era" : "phase2_tracker, trackingPhase2PU140",
     },
     "T2" : {
         1 : [
@@ -171,7 +171,7 @@ trackerDict = {
             'from Geometry.TrackerGeometryBuilder.idealForDigiTrackerGeometry_cff import *',
             'trackerGeometry.applyAlignment = cms.bool(False)',
         ],
-        "era" : "self.phase2_tracker, self.trackingPhase2PU140",
+        "era" : "phase2_tracker, trackingPhase2PU140",
     },
     "T3" : {
         1 : [
@@ -207,7 +207,7 @@ trackerDict = {
             'from Geometry.TrackerGeometryBuilder.idealForDigiTrackerGeometry_cff import *',
             'trackerGeometry.applyAlignment = cms.bool(False)',
         ],
-        "era" : "self.phase2_tracker, self.trackingPhase2PU140",
+        "era" : "phase2_tracker, trackingPhase2PU140",
     }   
 }
 
@@ -349,7 +349,7 @@ caloDict = {
             'from Geometry.EcalMapping.EcalMapping_cfi import *',
             'from Geometry.EcalMapping.EcalMappingRecord_cfi import *',
         ],
-        "era" : "self.phase2_hcal, self.phase2_hgcal",
+        "era" : "run2_HE_2017, run2_HF_2017, run2_HCAL_2017, run3_HB, phase2_hcal, phase2_hgcal",
     }
 }
 
@@ -396,7 +396,7 @@ muonDict = {
             'from Geometry.CSCGeometryBuilder.idealForDigiCscGeometry_cff import *',
             'from Geometry.DTGeometryBuilder.idealForDigiDtGeometry_cff import *',
         ],
-        "era" : "self.phase2_muon, self.run3_GEM",
+        "era" : "phase2_muon, run3_GEM",
     }
 }
 
@@ -447,7 +447,7 @@ timingDict = {
         4 : [
             'Geometry/HGCalSimData/data/fasttimeProdCuts.xml'
             ],
-        "era" : "self.phase2_timing",
+        "era" : "phase2_timing",
     }
 }
 

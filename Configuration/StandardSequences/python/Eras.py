@@ -29,6 +29,7 @@ class Eras (object):
                            'stage1L1Trigger', 'fastSim',
                            'run2_HE_2017', 'stage2L1Trigger',
                            'run2_HF_2017', 'run2_HCAL_2017',
+                           'run3_HB',
                            'phase1Pixel', 'run3_GEM',
                            'phase2_common', 'phase2_tracker',
                            'phase2_hgcal', 'phase2_muon', 'phase2_timing',
