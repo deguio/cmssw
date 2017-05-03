@@ -25,16 +25,16 @@ def hbheCosmic(module):
         algorithm = dict(
             useM2 = cms.bool(False),
             useM3 = cms.bool(False),
-            firstSampleShift = cms.int32(-1000),
-            samplesToAdd = cms.int32(10),
+            firstSampleShift = cms.int32(-3),
+            samplesToAdd = cms.int32(9),
             correctForPhaseContainment = cms.bool(False),
         )
     )
 
 hbhereco = hbheCosmic(_hcalLocalReco_cff.hbheprereco)
 hfreco = _hcalLocalReco_cff._default_hfreco.clone(
-    firstSample = 0,
-    samplesToAdd = 10, ### min(10,size) in the algo
+    firstSample = 1,
+    samplesToAdd = 9, ### min(10,size) in the algo
     correctForTimeslew = False,
     correctForPhaseContainment = False,
     tsFromDB = False,
