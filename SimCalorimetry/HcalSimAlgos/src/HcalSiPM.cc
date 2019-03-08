@@ -116,12 +116,12 @@ double HcalSiPM::hitCells(CLHEP::HepRandomEngine* engine, unsigned int pes, doub
   //disable saturation/recovery model for bad tau values
   if(theTau<=0) return pes;
 
-  unsigned int pixel;
-  double sum(0.), hit(0.);
+  unsigned int pixel, hit(0);
+  double sum(0.);
   for (unsigned int pe(0); pe < pes; ++pe) {
     pixel = CLHEP::RandFlat::shootInt(engine, theCellCount);
     hit = (theSiPM[pixel] < 0.) ? 1.0 :
-      (cellCharge(photonTime - theSiPM[pixel]));
+      std::floor(cellCharge(photonTime - theSiPM[pixel]));
     sum += hit*(1 + (tempDiff*theTempDep));
     theSiPM[pixel] = photonTime;
   }
