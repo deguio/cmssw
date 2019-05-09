@@ -61,6 +61,7 @@ private:
 	std::map<int, std::map<int, float>> layerRadiusMap_;
 	std::map<int, double> layerMap_;
 	std::map<int, std::vector<float>> hgcrocMap_;
+	std::map<int, std::vector<int>> hgcrocNcellsMap_;
 
 	const HGCalGeometry* gHGCal_;
 	const HGCalDDDConstants* hgcCons_;
@@ -209,9 +210,16 @@ HGCHEbackSignalScalerAnalyzer::analyze(const edm::Event& iEvent, const edm::Even
 		}
 
 		//fill per layer plots
-		probNoiseAboveHalfMip_layerMap[ilayer]->Fill(inradius*10, prob);
+		int rocbin = probNoiseAboveHalfMip_layerMap[ilayer]->FindBin(inradius*10);
+		if(rocbin < 0)
+			rocbin = 0;
 
+		double scaleValue = prob/ 72./ hgcrocNcellsMap_[ilayer][rocbin-1];
+		probNoiseAboveHalfMip_layerMap[ilayer]->Fill(inradius*10, scaleValue);
+
+		//std::cout << "lay: " << ilayer << " rad: " << inradius*10 << " rocbin: " << rocbin << std::endl;
 	}
+
 }
 
 void HGCHEbackSignalScalerAnalyzer::createBinning(const std::vector<DetId>& detIdVec)
@@ -273,6 +281,36 @@ void HGCHEbackSignalScalerAnalyzer::createBinning(const std::vector<DetId>& detI
 	hgcrocMap_[21] = arr21;
 	std::vector<float> arr22 = {1037.8, 1157.5, 1503.9, 1790.7, 2132.2, 2484.0};
 	hgcrocMap_[22] = arr22;
+
+
+	std::vector<int> ncells9 = {64, 32};
+	hgcrocNcellsMap_[9] = ncells9;
+	std::vector<int> ncells10 = {64, 48};
+	hgcrocNcellsMap_[10] = ncells10;
+	std::vector<int> ncells11 = {64, 56};
+	hgcrocNcellsMap_[11] = ncells11;
+	std::vector<int> ncells12 = {64, 64};
+	hgcrocNcellsMap_[12] = ncells12;
+	std::vector<int> ncells13 = {40, 64, 64, 24};
+	hgcrocNcellsMap_[13] = ncells13;
+	std::vector<int> ncells14 = {40, 64, 64, 40};
+	hgcrocNcellsMap_[14] = ncells14;
+	std::vector<int> ncells15 = {88, 64, 64, 56};
+	hgcrocNcellsMap_[15] = ncells15;
+	std::vector<int> ncells16 = {88, 64, 64, 64};
+	hgcrocNcellsMap_[16] = ncells16;
+	std::vector<int> ncells17 = {88, 64, 64, 64};
+	hgcrocNcellsMap_[17] = ncells17;
+	std::vector<int> ncells18 = {88, 64, 64, 64};
+	hgcrocNcellsMap_[18] = ncells18;
+	std::vector<int> ncells19 = {40, 96, 64, 64, 64};
+	hgcrocNcellsMap_[19] = ncells19;
+	std::vector<int> ncells20 = {40, 96, 64, 64, 64};
+	hgcrocNcellsMap_[20] = ncells20;
+	std::vector<int> ncells21 = {40, 96, 64, 64, 64};
+	hgcrocNcellsMap_[21] = ncells21;
+	std::vector<int> ncells22 = {40, 96, 64, 64, 48};
+	hgcrocNcellsMap_[22] = ncells22;
 
 }
 
