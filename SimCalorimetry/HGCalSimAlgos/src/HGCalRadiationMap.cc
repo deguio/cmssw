@@ -57,20 +57,21 @@ std::map<std::pair<int,int>, HGCalRadiationMap::DoseParameters> HGCalRadiationMa
 }
 
 //
-double HGCalRadiationMap::getDoseValue(const int subdet,const int layer, const std::array<double, 8>& radius)
+double HGCalRadiationMap::getDoseValue(const int subdet,const int layer, const std::array<double, 8>& radius,bool logVal)
 {
   std::pair<int,int> key(subdet,layer);
-  double cellDose = std::pow(10, doseMap_[key].a_ + doseMap_[key].b_*radius[4] + doseMap_[key].c_*radius[5] + doseMap_[key].d_*radius[6] + doseMap_[key].e_*radius[7]); //dose in grey
-  return cellDose * grayToKrad_; //convert to kRad
+  double cellDoseLog10 = doseMap_[key].a_ + doseMap_[key].b_*radius[4] + doseMap_[key].c_*radius[5] + doseMap_[key].d_*radius[6] + doseMap_[key].e_*radius[7];
+  return logVal ? cellDoseLog10*log(10.)+log(grayToKrad_) : pow(10,cellDoseLog10) * grayToKrad_;
 }
 
 //
-double HGCalRadiationMap::getFluenceValue(const int subdet,const int layer, const std::array<double, 8>& radius)
+double HGCalRadiationMap::getFluenceValue(const int subdet,const int layer, const std::array<double, 8>& radius,bool logVal )
 {
   std::pair<int,int> key(subdet,layer);
-  double cellFluence = std::pow(10, doseMap_[key].f_ + doseMap_[key].g_*radius[0] + doseMap_[key].h_*radius[1] + doseMap_[key].i_*radius[2] + doseMap_[key].j_*radius[3]); //dose in grey
-  return cellFluence;
+  double cellFluenceLog10=doseMap_[key].f_ + doseMap_[key].g_*radius[0] + doseMap_[key].h_*radius[1] + doseMap_[key].i_*radius[2] + doseMap_[key].j_*radius[3];
+  return logVal ? cellFluenceLog10*log(10.) : std::pow(10,cellFluenceLog10);
 }
+
 //
 std::pair<double, double> HGCalRadiationMap::scaleByDose(const HGCScintillatorDetId& cellId,  const std::array<double, 8>& radius)
 {

@@ -30,8 +30,8 @@ class HGCalRadiationMap
   
   double scaleByArea(const HGCScintillatorDetId&, const std::array<double, 8>&);
   std::pair<double, double> scaleByDose(const HGCScintillatorDetId&, const std::array<double, 8>&);
-  double getDoseValue(const int, const int, const std::array<double, 8>&);
-  double getFluenceValue(const int, const int, const std::array<double, 8>&);
+  double getDoseValue(const int, const int, const std::array<double, 8>&,bool logVal=false);
+  double getFluenceValue(const int, const int, const std::array<double, 8>&,bool logVal=false);
   std::array<double, 8> computeRadius(const HGCScintillatorDetId&);
 
   const HGCalGeometry *geom()    { return hgcalGeom_; }

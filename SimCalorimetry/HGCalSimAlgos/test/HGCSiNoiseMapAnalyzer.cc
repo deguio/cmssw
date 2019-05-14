@@ -54,8 +54,9 @@ private:
   // ----------member data ---------------------------
   edm::Service<TFileService> fs_;
   std::map<DetId::Detector, HGCalSiNoiseMap *> noiseMaps_;
-  std::map< std::pair<DetId::Detector,int>, TH1F *> layerN_, layerCCE_, layerNoise_, layerSN_, layerF_;
-  std::map< DetId::Detector, TH2F *> detN_, detCCE_, detNoise_, detSN_, detF_;
+  std::map< std::pair<DetId::Detector,int>, TH1F *> layerN_, layerCCE_, layerNoise_, layerIleak_, layerSN_, layerF_;
+  std::map< DetId::Detector, TH2F *> detN_, detCCE_, detNoise_, detIleak_, detSN_, detF_;
+  std::map<HGCSiliconDetId::waferType,double> signalfC_;
 };
 
 //
@@ -70,6 +71,12 @@ HGCSiNoiseMapAnalyzer::HGCSiNoiseMapAnalyzer(const edm::ParameterSet& iConfig)
   noiseMaps_[DetId::HGCalEE]->setDoseMap( doseMapURL );
   noiseMaps_[DetId::HGCalHSi]=new HGCalSiNoiseMap;
   noiseMaps_[DetId::HGCalHSi]->setDoseMap( doseMapURL );
+
+  double ePerMipPerMicron(iConfig.getParameter<double>("ePerMipPerMicron"));
+  double e2fc(1.60217646E-4);
+  signalfC_[HGCSiliconDetId::waferType::HGCalFine]=ePerMipPerMicron*e2fc*120;
+  signalfC_[HGCSiliconDetId::waferType::HGCalCoarseThin]=ePerMipPerMicron*e2fc*200;
+  signalfC_[HGCSiliconDetId::waferType::HGCalCoarseThick]=ePerMipPerMicron*e2fc*300;
 }
 
 //
@@ -87,63 +94,45 @@ void HGCSiNoiseMapAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
   std::vector<DetId::Detector> dets={DetId::HGCalEE,DetId::HGCalHSi};
   for(auto &d:dets) {
     noiseMaps_[d]->setGeometry( geom->getSubdetectorGeometry(d, ForwardSubdetector::ForwardEmpty) );
+    //sub-detector boundaries
+    unsigned int nlay=noiseMaps_[d]->ddd()->layers(true);
+    std::pair<double,double> ranZ=noiseMaps_[d]->ddd()->rangeZ(true);
+    std::pair<double,double> ranRAtZmin=noiseMaps_[d]->ddd()->rangeR(ranZ.first,true);
+    std::pair<double,double> ranRAtZmax=noiseMaps_[d]->ddd()->rangeR(ranZ.first,true);
+    std::pair<double,double> ranR(ranRAtZmin.first,ranRAtZmax.second);
 
     const std::vector<DetId> &detIdVec = noiseMaps_[d]->geom()->getValidDetIds();
-    cout << "Subdetector:" << d << " has " << detIdVec.size() << " valid cells" << endl;
-
-    std::map<int,float> layer_z;
-    std::map<int,float> layer_minR,layer_maxR;
-    for(const auto &cellId : detIdVec)
-      {
-        HGCSiliconDetId id(cellId.rawId());
-        int layer = std::abs(id.layer());
-        GlobalPoint pt = noiseMaps_[d]->geom()->getPosition(id);
-        float z(pt.z());
-        layer_z[layer]=fabs(z);
-        float r(pt.perp());
-        if(layer_minR.find(layer)==layer_minR.end()){
-          layer_minR[layer]=r;
-          layer_maxR[layer]=r;
-        }else{
-          layer_minR[layer]=min(layer_minR[layer],r);
-          layer_maxR[layer]=max(layer_maxR[layer],r);
-        }
-      }
-
+    cout << "Subdetector:" << d << " has " << detIdVec.size() << " valid cells" << endl
+         << "\t" <<  ranR.first << "<r<" << ranR.second << "\t" << ranZ.first << "<z<" << ranZ.second << endl;
 
     //start histos
     TString baseName(Form("d%d_",d));
     TString title(d==DetId::HGCalEE ? "CEE" : "CEH_{Si}");    
-    float minR(99999.),maxR(0.);
-    for(std::map<int,float>::iterator it=layer_z.begin(); it!=layer_z.end(); it++){
-      
-      int layer(it->first);
-      cout << "\t" << layer << " z=" << it->second << " " << layer_minR[layer] << "<r<" << layer_maxR[layer] << endl;
+    Int_t nbinsR(100);
+    for(unsigned int ilay=0; ilay<nlay; ilay++) {
 
       //this layer histos
+      int layer(ilay+1);
       std::pair<DetId::Detector,int> key(d,layer);
       TString layerBaseName(Form("%slayer%d_",baseName.Data(),layer));
       TString layerTitle(Form("%s %d",title.Data(),layer));
       layerTitle+= ";Radius [cm];";
-      Int_t nbins(100);
-      Float_t layer_rmin(layer_minR[layer]-10),layer_rmax(layer_maxR[layer]+10);
-      layerN_[key]     = fs_->make<TH1F>(layerBaseName+"ncells",  layerTitle+"Cells",               nbins, layer_rmin, layer_rmax);
-      layerCCE_[key]   = fs_->make<TH1F>(layerBaseName+"cce",     layerTitle+"<CCE>",               nbins, layer_rmin, layer_rmax);                     
-      layerNoise_[key] = fs_->make<TH1F>(layerBaseName+"noise",   layerTitle+"<Noise>",             nbins, layer_rmin, layer_rmax);
-      layerSN_[key]    = fs_->make<TH1F>(layerBaseName+"sn",      layerTitle+"<S/N>",               nbins, layer_rmin, layer_rmax);
-      layerF_[key]     = fs_->make<TH1F>(layerBaseName+"fluence", layerTitle+"<F> [n_{eq}/cm^{2}]", nbins, layer_rmin, layer_rmax);
-      minR=min(layer_rmin,minR);
-      maxR=max(layer_rmax,maxR);
+      layerN_[key]     = fs_->make<TH1F>(layerBaseName+"ncells",  layerTitle+"Cells",               nbinsR, ranR.first, ranR.second);
+      layerCCE_[key]   = fs_->make<TH1F>(layerBaseName+"cce",     layerTitle+"<CCE>",               nbinsR, ranR.first, ranR.second);                     
+      layerNoise_[key] = fs_->make<TH1F>(layerBaseName+"noise",   layerTitle+"<Noise> [fC]",        nbinsR, ranR.first, ranR.second);
+      layerIleak_[key] = fs_->make<TH1F>(layerBaseName+"ileak",   layerTitle+"<I_{leak}> [#muA]",   nbinsR, ranR.first, ranR.second);
+      layerSN_[key]    = fs_->make<TH1F>(layerBaseName+"sn",      layerTitle+"<S/N>",               nbinsR, ranR.first, ranR.second);
+      layerF_[key]     = fs_->make<TH1F>(layerBaseName+"fluence", layerTitle+"<F> [n_{eq}/cm^{2}]", nbinsR, ranR.first, ranR.second);
     }
 
     //sub-detector histos
     title+=";Layer;Radius [cm];";
-    Int_t nbinsX(layer_z.size()),nbinsY(100);
-    detN_[d]     = fs_->make<TH2F>(baseName+"ncells",  title+"Cells",               nbinsX,1,nbinsX+1, nbinsY,minR,maxR);
-    detCCE_[d]   = fs_->make<TH2F>(baseName+"cce",     title+"<CCE>",               nbinsX,1,nbinsX+1, nbinsY,minR,maxR);
-    detNoise_[d] = fs_->make<TH2F>(baseName+"noise",   title+"<Noise>",             nbinsX,1,nbinsX+1, nbinsY,minR,maxR);
-    detSN_[d]    = fs_->make<TH2F>(baseName+"sn",      title+"<S/N>",               nbinsX,1,nbinsX+1, nbinsY,minR,maxR);
-    detF_[d]     = fs_->make<TH2F>(baseName+"fluence", title+"<F> [n_{eq}/cm^{2}]", nbinsX,1,nbinsX+1, nbinsY,minR,maxR);
+    detN_[d]     = fs_->make<TH2F>(baseName+"ncells",  title+"Cells",               nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
+    detCCE_[d]   = fs_->make<TH2F>(baseName+"cce",     title+"<CCE>",               nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
+    detNoise_[d] = fs_->make<TH2F>(baseName+"noise",   title+"<Noise> [fC]",        nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
+    detIleak_[d] = fs_->make<TH2F>(baseName+"ileak",   title+"<I_{leak}> [#muA]",   nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
+    detSN_[d]    = fs_->make<TH2F>(baseName+"sn",      title+"<S/N>",               nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
+    detF_[d]     = fs_->make<TH2F>(baseName+"fluence", title+"<F> [n_{eq}/cm^{2}]", nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
                     
     //fill histos
     for(const auto &cellId : detIdVec)
@@ -153,30 +142,41 @@ void HGCSiNoiseMapAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         GlobalPoint pt = noiseMaps_[d]->geom()->getPosition(id);
         double r(pt.perp());
         
-        std::pair<double,double> cceNoise( noiseMaps_[d]->scaleByFluence(HGCalSiNoiseMap::q80fC,id,r) );
+        HGCalSiNoiseMap::SiCellOpCharacteristics siop=noiseMaps_[d]->getSiCellOpCharacteristics(HGCalSiNoiseMap::q80fC,id,r);
+
+        double S(signalfC_[HGCSiliconDetId::waferType(id.type())]);
 
         detN_[d]->Fill(layer,r,1);
-        detCCE_[d]->Fill(layer,r,cceNoise.first);
-        detNoise_[d]->Fill(layer,r,cceNoise.second);
-        detF_[d]->Fill(layer,r,noiseMaps_[d]->getCurrentFluence());
+        detCCE_[d]->Fill(layer,r,siop.cce);
+        detNoise_[d]->Fill(layer,r,siop.noise);
+        detSN_[d]->Fill(layer,r,S/siop.noise);
+        detIleak_[d]->Fill(layer,r,siop.ileak);
+        float fluence=exp(siop.lnfluence);
+        detF_[d]->Fill(layer,r,fluence);
 
         std::pair<DetId::Detector,int> key(d,layer);
         layerN_[key]->Fill(r,1);        
-        layerCCE_[key]->Fill(r,cceNoise.first);
-        layerNoise_[key]->Fill(r,cceNoise.second);
-        layerF_[key]->Fill(r,noiseMaps_[d]->getCurrentFluence());
+        layerCCE_[key]->Fill(r,siop.cce);
+        layerNoise_[key]->Fill(r,siop.noise);
+        layerSN_[key]->Fill(r,S/siop.noise);
+        layerIleak_[key]->Fill(r,siop.ileak);
+        layerF_[key]->Fill(r,fluence);
       }    
   
-
     //normalize histos per cell counts
     detF_[d]->Divide(detN_[d]);
     detCCE_[d]->Divide(detN_[d]);
     detNoise_[d]->Divide(detN_[d]);
-    for(std::map<int,float>::iterator it=layer_z.begin(); it!=layer_z.end(); it++){
-      std::pair<DetId::Detector,int> key(d,it->first);
+    detSN_[d]->Divide(detN_[d]);
+    detIleak_[d]->Divide(detN_[d]);
+    for(unsigned int ilay=0; ilay<nlay; ilay++) {
+      int layer(ilay+1);
+      std::pair<DetId::Detector,int> key(d,layer);
       layerF_[key]->Divide(layerN_[key]);
       layerCCE_[key]->Divide(layerN_[key]);
       layerNoise_[key]->Divide(layerN_[key]);
+      layerSN_[key]->Divide(layerN_[key]);
+      layerIleak_[key]->Divide(layerN_[key]);
     }
   }
   

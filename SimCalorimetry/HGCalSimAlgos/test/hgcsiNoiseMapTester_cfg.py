@@ -19,8 +19,9 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 process.source = cms.Source("EmptySource")
 
 process.plotter = cms.EDAnalyzer("HGCSiNoiseMapAnalyzer",
-                                 doseMap  = cms.string( options.doseMap )
-                        )
+                                 doseMap          = cms.string( options.doseMap ),
+                                 ePerMipPerMicron = cms.double(73)
+                             )
 
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string("dosemap_output.root")
