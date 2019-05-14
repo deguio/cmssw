@@ -33,11 +33,16 @@ class HGCalRadiationMap
   double getDoseValue(const int, const std::array<double, 8>&);
   double getFluenceValue(const int, const std::array<double, 8>&);
   std::array<double, 8> computeRadius(const HGCScintillatorDetId&);
+
+  const HGCalGeometry *geom()    { return hgcalGeom_; }
+  const HGCalDDDConstants *ddd() { return hgcalDDD_; }
+  inline const std::map<int, DoseParameters> & getDoseMap() { return doseMap_; }
   
  private:
   std::map<int, DoseParameters> readDosePars(const std::string&);
   
-  const HGCalGeometry* hgcalGeom_;
+  const HGCalGeometry *hgcalGeom_;
+  const HGCalDDDConstants *hgcalDDD_;
   std::map<int, DoseParameters> doseMap_;
   const double grayToKrad_;
   const double refEdge_; //cm
