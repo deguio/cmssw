@@ -30,20 +30,20 @@ class HGCalRadiationMap
   
   double scaleByArea(const HGCScintillatorDetId&, const std::array<double, 8>&);
   std::pair<double, double> scaleByDose(const HGCScintillatorDetId&, const std::array<double, 8>&);
-  double getDoseValue(const int, const std::array<double, 8>&);
-  double getFluenceValue(const int, const std::array<double, 8>&);
+  double getDoseValue(const int, const int, const std::array<double, 8>&);
+  double getFluenceValue(const int, const int, const std::array<double, 8>&);
   std::array<double, 8> computeRadius(const HGCScintillatorDetId&);
 
   const HGCalGeometry *geom()    { return hgcalGeom_; }
   const HGCalDDDConstants *ddd() { return hgcalDDD_; }
-  inline const std::map<int, DoseParameters> & getDoseMap() { return doseMap_; }
+  inline const std::map<std::pair<int,int>, DoseParameters> & getDoseMap() { return doseMap_; }
   
  private:
-  std::map<int, DoseParameters> readDosePars(const std::string&);
+  std::map<std::pair<int,int>, DoseParameters> readDosePars(const std::string&);
   
   const HGCalGeometry *hgcalGeom_;
   const HGCalDDDConstants *hgcalDDD_;
-  std::map<int, DoseParameters> doseMap_;
+  std::map<std::pair<int,int>, DoseParameters> doseMap_;
   const double grayToKrad_;
   const double refEdge_; //cm
   bool verbose_;

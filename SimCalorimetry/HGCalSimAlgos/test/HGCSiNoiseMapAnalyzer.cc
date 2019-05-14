@@ -17,6 +17,8 @@
 
 #include "SimCalorimetry/HGCalSimAlgos/interface/HGCalSiNoiseMap.h"
 
+
+#include <TH1F.h>
 #include <TH2F.h>
 
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -31,6 +33,8 @@
 #include <iomanip>
 
 #include "vdt/vdtMath.h"
+
+using namespace std;
 
 //
 // class declaration
@@ -48,20 +52,24 @@ private:
   void endJob() override {}
   
   // ----------member data ---------------------------
-  edm::Service<TFileService> fs;
-  HGCalSiNoiseMap ceeNoiseMap_,cehNoiseMap_;  
+  edm::Service<TFileService> fs_;
+  std::map<DetId::Detector, HGCalSiNoiseMap *> noiseMaps_;
+  std::map< std::pair<DetId::Detector,int>, TH1F *> layerN_, layerCCE_, layerNoise_, layerSN_, layerF_;
+  std::map< DetId::Detector, TH2F *> detN_, detCCE_, detNoise_, detSN_, detF_;
 };
 
 //
 HGCSiNoiseMapAnalyzer::HGCSiNoiseMapAnalyzer(const edm::ParameterSet& iConfig)
 {
   usesResource("TFileService");
-  fs->file().cd();
+  fs_->file().cd();
 
   //configure the dose map
   std::string doseMapURL( iConfig.getParameter<std::string>("doseMap") );
-  ceeNoiseMap_.setDoseMap( doseMapURL );
-  cehNoiseMap_.setDoseMap( doseMapURL );
+  noiseMaps_[DetId::HGCalEE]=new HGCalSiNoiseMap;
+  noiseMaps_[DetId::HGCalEE]->setDoseMap( doseMapURL );
+  noiseMaps_[DetId::HGCalHSi]=new HGCalSiNoiseMap;
+  noiseMaps_[DetId::HGCalHSi]->setDoseMap( doseMapURL );
 }
 
 //
@@ -69,214 +77,112 @@ HGCSiNoiseMapAnalyzer::~HGCSiNoiseMapAnalyzer()
 {
 }
 
-
 //
-// member functions
-//
-
-// ------------ method called on each new Event  ------------
 void HGCSiNoiseMapAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& es)
 {
   //get geometry
   edm::ESHandle<CaloGeometry> geom;
   es.get<CaloGeometryRecord>().get(geom);
-  ceeNoiseMap_.setGeometry( geom->getSubdetectorGeometry(DetId::HGCalEE, ForwardSubdetector::ForwardEmpty) );
-  cehNoiseMap_.setGeometry( geom->getSubdetectorGeometry(DetId::HGCalHSi,ForwardSubdetector::ForwardEmpty) );
 
-  /*
-	const std::vector<DetId>& detIdVec = gHGCal_->getValidDetIds();
-	std::cout << "total number of cells: " << detIdVec.size() << std::endl;
+  std::vector<DetId::Detector> dets={DetId::HGCalEE,DetId::HGCalHSi};
+  for(auto &d:dets) {
+    noiseMaps_[d]->setGeometry( geom->getSubdetectorGeometry(d, ForwardSubdetector::ForwardEmpty) );
 
-	//get ddd constants
-	edm::ESHandle<HGCalDDDConstants> dddhandle;
-	iSetup.get<IdealGeometryRecord>().get("HGCalHEScintillatorSensitive",dddhandle);
-	if (!dddhandle.isValid()) {
-		edm::LogError("HGCSiNoiseMapAnalyzer") << "Cannot initiate HGCalDDDConstants";
-		return;
-	}
-	hgcCons_ = dddhandle.product();
+    const std::vector<DetId> &detIdVec = noiseMaps_[d]->geom()->getValidDetIds();
+    cout << "Subdetector:" << d << " has " << detIdVec.size() << " valid cells" << endl;
 
-
-	//setup maps
-	createBinning(detIdVec);
-	printBoundaries();
-	//instantiate binning array
-	std::vector<double> tmpVec;
-	for(auto elem : layerMap_)
-		tmpVec.push_back(elem.second);
-
-	double* zBins = tmpVec.data();
-	int nzBins = tmpVec.size() - 1;
-
-	TProfile2D* doseMap = fs->make<TProfile2D>("doseMap","doseMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-	TProfile2D* fluenceMap = fs->make<TProfile2D>("fluenceMap","fluenceMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-	TProfile2D* scaleByDoseMap = fs->make<TProfile2D>("scaleByDoseMap","scaleByDoseMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-	TProfile2D* scaleByAreaMap = fs->make<TProfile2D>("scaleByAreaMap","scaleByAreaMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-	TProfile2D* scaleByDoseAreaMap = fs->make<TProfile2D>("scaleByDoseAreaMap","scaleByDoseAreaMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-	TProfile2D* noiseByFluenceMap = fs->make<TProfile2D>("noiseByFluenceMap","noiseByFluenceMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-	TProfile2D* probNoiseAboveHalfMip = fs->make<TProfile2D>("probNoiseAboveHalfMip","probNoiseAboveHalfMip", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-
-	TProfile2D* signalToNoiseFlatAreaMap = fs->make<TProfile2D>("signalToNoiseFlatAreaMap","signalToNoiseFlatAreaMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-	TProfile2D* signalToNoiseDoseMap = fs->make<TProfile2D>("signalToNoiseDoseMap","signalToNoiseDoseMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-	TProfile2D* signalToNoiseAreaMap = fs->make<TProfile2D>("signalToNoiseAreaMap","signalToNoiseAreaMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-	TProfile2D* signalToNoiseDoseAreaMap = fs->make<TProfile2D>("signalToNoiseDoseAreaMap","signalToNoiseDoseAreaMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-
-	TProfile2D* saturationMap = fs->make<TProfile2D>("saturationMap","saturationMap", nzBins, zBins, radiusBins_, radiusMin_, radiusMax_);
-
-	//book per layer plots
-	std::map<int, TH1D*> probNoiseAboveHalfMip_layerMap;
-	for(auto lay : layerRadiusMap_)
-		probNoiseAboveHalfMip_layerMap[lay.first] = fs->make<TH1D>(Form("probNoiseAboveHalfMip_layer%d",lay.first),"", hgcrocMap_[lay.first].size()-1, hgcrocMap_[lay.first].data());
+    std::map<int,float> layer_z;
+    std::map<int,float> layer_minR,layer_maxR;
+    for(const auto &cellId : detIdVec)
+      {
+        HGCSiliconDetId id(cellId.rawId());
+        int layer = std::abs(id.layer());
+        GlobalPoint pt = noiseMaps_[d]->geom()->getPosition(id);
+        float z(pt.z());
+        layer_z[layer]=fabs(z);
+        float r(pt.perp());
+        if(layer_minR.find(layer)==layer_minR.end()){
+          layer_minR[layer]=r;
+          layer_maxR[layer]=r;
+        }else{
+          layer_minR[layer]=min(layer_minR[layer],r);
+          layer_maxR[layer]=max(layer_maxR[layer],r);
+        }
+      }
 
 
-	//instantiate scaler
-	HGCHEbackSignalScaler scal;
-	scal.setDoseMap(doseMap_);
-	scal.setGeometry(gHGCal_);
+    //start histos
+    TString baseName(Form("d%d_",d));
+    TString title(d==DetId::HGCalEE ? "CEE" : "CEH_{Si}");    
+    float minR(99999.),maxR(0.);
+    for(std::map<int,float>::iterator it=layer_z.begin(); it!=layer_z.end(); it++){
+      
+      int layer(it->first);
+      cout << "\t" << layer << " z=" << it->second << " " << layer_minR[layer] << "<r<" << layer_maxR[layer] << endl;
 
-	//loop over valid detId from the HGCHEback
-	LogDebug("HGCSiNoiseMapAnalyzer") << "Total number of DetIDs: " << detIdVec.size();
-	for(std::vector<DetId>::const_iterator myId = detIdVec.begin(); myId != detIdVec.end(); ++myId)
-	{
-		HGCScintillatorDetId scId(myId->rawId());
+      //this layer histos
+      std::pair<DetId::Detector,int> key(d,layer);
+      TString layerBaseName(Form("%slayer%d_",baseName.Data(),layer));
+      TString layerTitle(Form("%s %d",title.Data(),layer));
+      layerTitle+= ";Radius [cm];";
+      Int_t nbins(100);
+      Float_t layer_rmin(layer_minR[layer]-10),layer_rmax(layer_maxR[layer]+10);
+      layerN_[key]     = fs_->make<TH1F>(layerBaseName+"ncells",  layerTitle+"Cells",               nbins, layer_rmin, layer_rmax);
+      layerCCE_[key]   = fs_->make<TH1F>(layerBaseName+"cce",     layerTitle+"<CCE>",               nbins, layer_rmin, layer_rmax);                     
+      layerNoise_[key] = fs_->make<TH1F>(layerBaseName+"noise",   layerTitle+"<Noise>",             nbins, layer_rmin, layer_rmax);
+      layerSN_[key]    = fs_->make<TH1F>(layerBaseName+"sn",      layerTitle+"<S/N>",               nbins, layer_rmin, layer_rmax);
+      layerF_[key]     = fs_->make<TH1F>(layerBaseName+"fluence", layerTitle+"<F> [n_{eq}/cm^{2}]", nbins, layer_rmin, layer_rmax);
+      minR=min(layer_rmin,minR);
+      maxR=max(layer_rmax,maxR);
+    }
 
-		int layer = scId.layer();
-		std::array<double, 8> radius = scal.computeRadius(scId);
-		double dose = scal.getDoseValue(layer, radius);
-		double fluence = scal.getFluenceValue(layer, radius);
+    //sub-detector histos
+    title+=";Layer;Radius [cm];";
+    Int_t nbinsX(layer_z.size()),nbinsY(100);
+    detN_[d]     = fs_->make<TH2F>(baseName+"ncells",  title+"Cells",               nbinsX,1,nbinsX+1, nbinsY,minR,maxR);
+    detCCE_[d]   = fs_->make<TH2F>(baseName+"cce",     title+"<CCE>",               nbinsX,1,nbinsX+1, nbinsY,minR,maxR);
+    detNoise_[d] = fs_->make<TH2F>(baseName+"noise",   title+"<Noise>",             nbinsX,1,nbinsX+1, nbinsY,minR,maxR);
+    detSN_[d]    = fs_->make<TH2F>(baseName+"sn",      title+"<S/N>",               nbinsX,1,nbinsX+1, nbinsY,minR,maxR);
+    detF_[d]     = fs_->make<TH2F>(baseName+"fluence", title+"<F> [n_{eq}/cm^{2}]", nbinsX,1,nbinsX+1, nbinsY,minR,maxR);
+                    
+    //fill histos
+    for(const auto &cellId : detIdVec)
+      {
+        HGCSiliconDetId id(cellId.rawId());
+        int layer = std::abs(id.layer());
+        GlobalPoint pt = noiseMaps_[d]->geom()->getPosition(id);
+        double r(pt.perp());
+        
+        std::pair<double,double> cceNoise( noiseMaps_[d]->scaleByFluence(HGCalSiNoiseMap::q80fC,id,r) );
 
-		auto dosePair = scal.scaleByDose(scId, radius);
-		float scaleFactorByDose = dosePair.first;
-		float noiseByFluence = dosePair.second;
-		float scaleFactorByArea = scal.scaleByArea(scId, radius);
+        detN_[d]->Fill(layer,r,1);
+        detCCE_[d]->Fill(layer,r,cceNoise.first);
+        detNoise_[d]->Fill(layer,r,cceNoise.second);
+        detF_[d]->Fill(layer,r,noiseMaps_[d]->getCurrentFluence());
 
+        std::pair<DetId::Detector,int> key(d,layer);
+        layerN_[key]->Fill(r,1);        
+        layerCCE_[key]->Fill(r,cceNoise.first);
+        layerNoise_[key]->Fill(r,cceNoise.second);
+        layerF_[key]->Fill(r,noiseMaps_[d]->getCurrentFluence());
+      }    
+  
 
-		TF1 mypois("mypois","TMath::Poisson(x+[0],[0])",0,10000); //subtract ped mean
-		mypois.SetParameter(0, std::pow(noiseByFluence,2));
-		double prob = mypois.Integral(nPEperMIP_*scaleFactorByArea*0.5, 10000);
+    //normalize histos per cell counts
+    detF_[d]->Divide(detN_[d]);
+    detCCE_[d]->Divide(detN_[d]);
+    detNoise_[d]->Divide(detN_[d]);
+    for(std::map<int,float>::iterator it=layer_z.begin(); it!=layer_z.end(); it++){
+      std::pair<DetId::Detector,int> key(d,it->first);
+      layerF_[key]->Divide(layerN_[key]);
+      layerCCE_[key]->Divide(layerN_[key]);
+      layerNoise_[key]->Divide(layerN_[key]);
+    }
+  }
+  
 
-		int ilayer = scId.layer();
-		int iradius = scId.iradiusAbs();
-		std::pair<double,double> cellSize = hgcCons_->cellSizeTrap(scId.type(), scId.iradiusAbs());
-		float inradius = cellSize.first;
-
-		GlobalPoint global = gHGCal_->getPosition(scId);
-		float zpos = std::abs(global.z());
-
-
-		int bin = doseMap->GetYaxis()->FindBin(inradius);
-		while(scaleByDoseMap->GetYaxis()->GetBinLowEdge(bin) < layerRadiusMap_[ilayer][iradius+1])
-		{
-			LogDebug("HGCSiNoiseMapAnalyzer") << "rIN = " << layerRadiusMap_[ilayer][iradius] << " rIN+1 = " << layerRadiusMap_[ilayer][iradius+1] << " inradius = " << inradius << " type = " << scId.type() << " ilayer = " << scId.layer();
-
-			doseMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), dose);
-			fluenceMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), fluence);
-			scaleByDoseMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), scaleFactorByDose);
-			scaleByAreaMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), scaleFactorByArea);
-			scaleByDoseAreaMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), scaleFactorByDose * scaleFactorByArea);
-			noiseByFluenceMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), noiseByFluence);
-			probNoiseAboveHalfMip->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), prob);
-
-			signalToNoiseFlatAreaMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), 100 * scaleFactorByArea);
-			signalToNoiseDoseMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), nPEperMIP_ * scaleFactorByDose / noiseByFluence);
-			signalToNoiseAreaMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), nPEperMIP_ * scaleFactorByArea / noiseByFluence);
-			signalToNoiseDoseAreaMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), nPEperMIP_ * scaleFactorByArea * scaleFactorByDose / noiseByFluence);
-			saturationMap->Fill(zpos, scaleByDoseMap->GetYaxis()->GetBinCenter(bin), nPEperMIP_ * scaleFactorByArea * scaleFactorByDose + std::pow(noiseByFluence,2));
-
-			++bin;
-		}
-
-		//fill per layer plots
-		probNoiseAboveHalfMip_layerMap[ilayer]->Fill(inradius*10, prob);
-
-	}
-  */
-}
-
-/*
-void HGCSiNoiseMapAnalyzer::createBinning(const std::vector<DetId>& detIdVec)
-{
-	for(std::vector<DetId>::const_iterator myId = detIdVec.begin(); myId != detIdVec.end(); ++myId)
-	{
-		HGCScintillatorDetId scId(myId->rawId());
-
-		int layer = std::abs(scId.layer());
-		int radius = scId.iradiusAbs();
-		GlobalPoint global = gHGCal_->getPosition(scId);
-
-		//z-binning
-		layerMap_[layer] = std::abs(global.z());
-
-		//r-binning
-		layerRadiusMap_[layer][radius] = (hgcCons_->cellSizeTrap(scId.type(), radius)).first; //internal radius
-	}
-	//guess the last bins Z
-	auto last = std::prev(layerMap_.end(), 1);
-	auto lastbo = std::prev(layerMap_.end(), 2);
-	layerMap_[last->first + 1] = last->second + (last->second - lastbo->second);
-
-	//get external rad for the last bins r
-	firstLayer_ = layerRadiusMap_.begin()->first;
-	lastLayer_ = layerRadiusMap_.rbegin()->first;
-	for(int lay=firstLayer_; lay<=lastLayer_; ++lay)
-	{
-		auto lastr = std::prev((layerRadiusMap_[lay]).end(), 1);
-		layerRadiusMap_[lay][lastr->first + 1] = (hgcCons_->cellSizeTrap(hgcCons_->getTypeTrap(lay), lastr->first)).second; //external radius
-	}
-
-	//implement by hand the approximate hgcroc boundaries
-	std::vector<float> arr9 = {1537.0, 1790.7, 1997.1};
-	hgcrocMap_[9] = arr9;
-	std::vector<float> arr10 = {1537.0, 1790.7, 2086.2};
-	hgcrocMap_[10] = arr10;
-	std::vector<float> arr11 = {1537.0, 1790.7, 2132.2};
-	hgcrocMap_[11] = arr11;
-	std::vector<float> arr12 = {1537.0, 1790.7, 2179.2};
-	hgcrocMap_[12] = arr12;
-	std::vector<float> arr13 = {1378.2, 1503.9, 1790.7, 2132.2, 2326.6};
-	hgcrocMap_[13] = arr13;
-	std::vector<float> arr14 = {1378.2, 1503.9, 1790.7, 2132.2, 2430.4};
-	hgcrocMap_[14] = arr14;
-	std::vector<float> arr15 = {1183.0, 1503.9, 1790.7, 2132.2, 2538.8};
-	hgcrocMap_[15] = arr15;
-	std::vector<float> arr16 = {1183.0, 1503.9, 1790.7, 2132.2, 2594.8};
-	hgcrocMap_[16] = arr16;
-	std::vector<float> arr17 = {1183.0, 1503.9, 1790.7, 2132.2, 2594.8};
-	hgcrocMap_[17] = arr17;
-	std::vector<float> arr18 = {1183.0, 1503.9, 1790.7, 2132.2, 2594.8};
-	hgcrocMap_[18] = arr18;
-	std::vector<float> arr19 = {1037.8, 1157.5, 1503.9, 1790.7, 2132.2, 2594.8};
-	hgcrocMap_[19] = arr19;
-	std::vector<float> arr20 = {1037.8, 1157.5, 1503.9, 1790.7, 2132.2, 2594.8};
-	hgcrocMap_[20] = arr20;
-	std::vector<float> arr21 = {1037.8, 1157.5, 1503.9, 1790.7, 2132.2, 2594.8};
-	hgcrocMap_[21] = arr21;
-	std::vector<float> arr22 = {1037.8, 1157.5, 1503.9, 1790.7, 2132.2, 2484.0};
-	hgcrocMap_[22] = arr22;
 
 }
-
-void HGCSiNoiseMapAnalyzer::printBoundaries()
-{
-	std::cout << std::endl;
-	std::cout << "z boundaries" << std::endl;
-	std::cout << std::setw(5) << "layer" << std::setw(15) << "z-position" << std::endl;
-	for(auto elem : layerMap_)
-		std::cout << std::setprecision(5) << std::setw(5) << elem.first << std::setw(15) << elem.second << std::endl;
-
-	std::cout << std::endl;
-	std::cout << "r boundaries" << std::endl;
-	std::cout << std::setw(5) << "layer" << std::setw(10) << "r-min" << std::setw(10) << "r-max" << std::endl;
-	for(auto elem : layerRadiusMap_)
-	{
-		auto rMin = (elem.second).begin();
-		auto rMax = (elem.second).rbegin();
-		std::cout << std::setprecision(5) << std::setw(5) << elem.first << std::setw(10) << rMin->second << std::setw(10) << rMax->second << std::endl;
-	}
-
-}
-
-*/
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(HGCSiNoiseMapAnalyzer);

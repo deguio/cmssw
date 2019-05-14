@@ -21,7 +21,9 @@ class HGCalSiNoiseMap : public HGCalRadiationMap {
   /**
      @short returns the charge collection efficiency and noise
   */
-  std::pair<double,double> scaleByDose(SignalRange_t srange,const HGCSiliconDetId &did,const std::array<double, 8>&radius);
+  std::pair<double,double> scaleByFluence(SignalRange_t srange,const HGCSiliconDetId &did,double &radius);
+
+  inline double &getCurrentFluence() { return curFluence_; }
   
  private:
 
@@ -38,6 +40,9 @@ class HGCalSiNoiseMap : public HGCalRadiationMap {
   //electron charge in fC
   const double encScale_;
   
+  //last fluence computed
+  double curFluence_;
+
   //electronics noise (series+parallel) polynomial coeffs;
   std::map<SignalRange_t,std::vector<double> > encsParam_;
 };

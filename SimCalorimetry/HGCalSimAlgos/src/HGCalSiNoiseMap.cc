@@ -3,7 +3,8 @@
 //
 HGCalSiNoiseMap::HGCalSiNoiseMap() :
   encpScale_(840.),
-  encScale_(1.60217646E-4)
+  encScale_(1.60217646E-4),
+  curFluence_(0.)
 {
   encsParam_[q80fC]  = {636.,  15.6, 0.0328};
   encsParam_[q160fC] = {1045., 8.74, 0.0685};
@@ -21,12 +22,13 @@ HGCalSiNoiseMap::HGCalSiNoiseMap() :
 }
 
 //
-std::pair<double,double> HGCalSiNoiseMap::scaleByDose(SignalRange_t srange,const HGCSiliconDetId &cellId,const std::array<double, 8>&radius) {
+std::pair<double,double> HGCalSiNoiseMap::scaleByFluence(SignalRange_t srange,const HGCSiliconDetId &cellId,double &radius) {
 
   std::pair<double,double> cceNoise(1.,0.);
   
   //decode cell properties
   int layer(cellId.layer());
+  if(cellId.subdet()==DetId::HGCalEE) layer=(layer-1)/2+1;
   HGCSiliconDetId::waferType cellThick( HGCSiliconDetId::waferType(cellId.type()) );
   double cellCap(cellCapacitance_[cellThick]);
   double cellThickVal( cellThick==HGCSiliconDetId::waferType::HGCalFine? 120.e-6:
@@ -37,14 +39,14 @@ std::pair<double,double> HGCalSiNoiseMap::scaleByDose(SignalRange_t srange,const
 
   //get fluence
   if(getDoseMap().empty()) return cceNoise;
-  double cellFluence( getFluenceValue(layer,radius) );
-
-
+  std::array<double, 8> radii{ {radius,pow(radius,2),pow(radius,3),pow(radius,4),0.,0.,0.,0.} };
+  curFluence_=getFluenceValue(cellId.subdet(),layer,radii);
+  
   //leakage current
-  double ileak((ileakParam_[0]*log(cellFluence)+ileakParam_[1])*cellVol);
+  double ileak((ileakParam_[0]*log(curFluence_)+ileakParam_[1])*cellVol);
   
   //charge collection efficiency
-  cceNoise.first=(cceParam_[cellThick][1]*log(cellFluence)/cceParam_[cellThick][0]-1.);
+  cceNoise.first=(cceParam_[cellThick][1]*log(curFluence_)/cceParam_[cellThick][0]-1.);
 
   //build noise estimate
   double enc_p(encpScale_*sqrt(ileak));

@@ -18,7 +18,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 process.source = cms.Source("EmptySource")
 
-process.plotter = cms.EDAnalyzer("HGCalSiNoiseMapAnalyzer",
+process.plotter = cms.EDAnalyzer("HGCSiNoiseMapAnalyzer",
                                  doseMap  = cms.string( options.doseMap )
                         )
 

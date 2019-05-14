@@ -25,9 +25,9 @@ void HGCalRadiationMap::setGeometry(const CaloSubdetectorGeometry* geom)
 }
 
 //
-std::map<int, HGCalRadiationMap::DoseParameters> HGCalRadiationMap::readDosePars(const std::string& fullpath)
+std::map<std::pair<int,int>, HGCalRadiationMap::DoseParameters> HGCalRadiationMap::readDosePars(const std::string& fullpath)
 {
-  std::map<int, DoseParameters> result;
+  std::map<std::pair<int,int>, DoseParameters> result;
 
   //no dose file means no aging
   if(fullpath.empty())
@@ -42,29 +42,33 @@ std::map<int, HGCalRadiationMap::DoseParameters> HGCalRadiationMap::readDosePars
   std::string line;
   while(getline(infile,line))
   {
+    int subdet;
     int layer;
     DoseParameters dosePars;
 
     //space-separated
     std::stringstream linestream(line);
-    linestream >> layer >> dosePars.a_ >>  dosePars.b_ >> dosePars.c_ >> dosePars.d_ >> dosePars.e_ >> dosePars.f_ >> dosePars.g_ >> dosePars.h_ >> dosePars.i_ >> dosePars.j_;
+    linestream >> subdet >> layer >> dosePars.a_ >>  dosePars.b_ >> dosePars.c_ >> dosePars.d_ >> dosePars.e_ >> dosePars.f_ >> dosePars.g_ >> dosePars.h_ >> dosePars.i_ >> dosePars.j_;
 
-    result[layer] = dosePars;
+    std::pair<int,int> key(subdet,layer);
+    result[key] = dosePars;
   }
   return result;
 }
 
 //
-double HGCalRadiationMap::getDoseValue(const int layer, const std::array<double, 8>& radius)
+double HGCalRadiationMap::getDoseValue(const int subdet,const int layer, const std::array<double, 8>& radius)
 {
-  double cellDose = std::pow(10, doseMap_[layer].a_ + doseMap_[layer].b_*radius[4] + doseMap_[layer].c_*radius[5] + doseMap_[layer].d_*radius[6] + doseMap_[layer].e_*radius[7]); //dose in grey
+  std::pair<int,int> key(subdet,layer);
+  double cellDose = std::pow(10, doseMap_[key].a_ + doseMap_[key].b_*radius[4] + doseMap_[key].c_*radius[5] + doseMap_[key].d_*radius[6] + doseMap_[key].e_*radius[7]); //dose in grey
   return cellDose * grayToKrad_; //convert to kRad
 }
 
 //
-double HGCalRadiationMap::getFluenceValue(const int layer, const std::array<double, 8>& radius)
+double HGCalRadiationMap::getFluenceValue(const int subdet,const int layer, const std::array<double, 8>& radius)
 {
-  double cellFluence = std::pow(10, doseMap_[layer].f_ + doseMap_[layer].g_*radius[0] + doseMap_[layer].h_*radius[1] + doseMap_[layer].i_*radius[2] + doseMap_[layer].j_*radius[3]); //dose in grey
+  std::pair<int,int> key(subdet,layer);
+  double cellFluence = std::pow(10, doseMap_[key].f_ + doseMap_[key].g_*radius[0] + doseMap_[key].h_*radius[1] + doseMap_[key].i_*radius[2] + doseMap_[key].j_*radius[3]); //dose in grey
   return cellFluence;
 }
 //
@@ -74,29 +78,31 @@ std::pair<double, double> HGCalRadiationMap::scaleByDose(const HGCScintillatorDe
     return std::make_pair(1., 0.);
 
   int layer = cellId.layer();
-  double cellDose = getDoseValue(layer, radius); //in kRad
+  double cellDose = getDoseValue(DetId::HGCalHSc, layer, radius); //in kRad
   constexpr double expofactor = 1./199.6;
   double scaleFactor = std::exp( -std::pow(cellDose, 0.65) * expofactor );
 
-  double cellFluence = getFluenceValue(layer, radius); //in 1-Mev-equivalent neutrons per cm2
+  double cellFluence = getFluenceValue(DetId::HGCalHSc, layer, radius); //in 1-Mev-equivalent neutrons per cm2
 
   constexpr double factor = 2. / (2*1e13); //SiPM area = 2mm^2
   double noise = 2.18 * sqrt(cellFluence * factor);
 
   if(verbose_)
   {
+    std::pair<int,int>key(DetId::HGCalHSc, layer);
     LogDebug("HGCalRadiationMap") << "HGCalRadiationMap::scaleByDose - Dose, scaleFactor, fluence, noise: "
                                       << cellDose << " " << scaleFactor << " "
                                       << cellFluence << " " << noise;
 
-    LogDebug("HGCalRadiationMap") << "HGCalRadiationMap::setDoseMap - layer, a, b, c, d, e, f: "
-                                      << layer << " "
-                                      << doseMap_[layer].a_ << " "
-                                      << doseMap_[layer].b_ << " "
-                                      << doseMap_[layer].c_ << " "
-                                      << doseMap_[layer].d_ << " "
-                                      << doseMap_[layer].e_ << " "
-                                      << doseMap_[layer].f_;
+    LogDebug("HGCalRadiationMap") << "HGCalRadiationMap::setDoseMap - subdet,layer, a, b, c, d, e, f: "
+                                  << key.first << " "
+                                  << key.second << " "
+                                  << doseMap_[key].a_ << " "
+                                  << doseMap_[key].b_ << " "
+                                  << doseMap_[key].c_ << " "
+                                  << doseMap_[key].d_ << " "
+                                  << doseMap_[key].e_ << " "
+                                  << doseMap_[key].f_;
   }
 
   return std::make_pair(scaleFactor, noise);
