@@ -99,7 +99,7 @@ void HGCSiNoiseMapAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     std::pair<double,double> ranZ=noiseMaps_[d]->ddd()->rangeZ(true);
     std::pair<double,double> ranRAtZmin=noiseMaps_[d]->ddd()->rangeR(ranZ.first,true);
     std::pair<double,double> ranRAtZmax=noiseMaps_[d]->ddd()->rangeR(ranZ.first,true);
-    std::pair<double,double> ranR(ranRAtZmin.first,ranRAtZmax.second);
+    std::pair<double,double> ranR(ranRAtZmin.first-20,ranRAtZmax.second+20);
 
     const std::vector<DetId> &detIdVec = noiseMaps_[d]->geom()->getValidDetIds();
     cout << "Subdetector:" << d << " has " << detIdVec.size() << " valid cells" << endl
