@@ -4,7 +4,7 @@
 
 //
 HGCalRadiationMap::HGCalRadiationMap() :
-  grayToKrad_(0.1), 
+  grayToKrad_(0.1),
   refEdge_(3),
   verbose_(false)
 {
@@ -111,18 +111,16 @@ std::pair<double, double> HGCalRadiationMap::scaleByDose(const HGCScintillatorDe
 
 double HGCalRadiationMap::scaleByArea(const HGCScintillatorDetId& cellId, const std::array<double, 8>& radius)
 {
-  double circ = 2 * M_PI * radius[0];
-
-  double edge(refEdge_);
+  double edge;
   if(cellId.type() == 0)
   {
-    constexpr double factor = 1./360.;
-    edge = circ * factor; //1 degree
+    constexpr double factor = 2 * M_PI * 1./360.;
+    edge = radius[0] * factor; //1 degree
   }
   else
   {
-    constexpr double factor = 1./288.;
-    edge = circ * factor; //1.25 degrees
+    constexpr double factor = 2 * M_PI * 1./288.;
+    edge = radius[0] * factor; //1.25 degrees
   }
 
   double scaleFactor = refEdge_ / edge;  //assume reference 3cm of edge
