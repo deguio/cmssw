@@ -15,7 +15,7 @@
 #include "Geometry/HGCalCommonData/interface/HGCalDDDConstants.h"
 #include "Geometry/HcalCommonData/interface/HcalDDDRecConstants.h"
 
-#include "SimCalorimetry/HGCalSimProducers/interface/HGCHEbackDigitizer.h"
+#include "SimCalorimetry/HGCalSimAlgos/interface/HGCalSciNoiseMap.h"
 
 //ROOT headers
 #include <TProfile2D.h>
@@ -152,7 +152,7 @@ HGCHEbackSignalScalerAnalyzer::analyze(const edm::Event& iEvent, const edm::Even
 
 
 	//instantiate scaler
-	HGCHEbackSignalScaler scal;
+	HGCalSciNoiseMap scal;
 	scal.setDoseMap(doseMap_);
 	scal.setGeometry(gHGCal_);
 
@@ -164,8 +164,8 @@ HGCHEbackSignalScalerAnalyzer::analyze(const edm::Event& iEvent, const edm::Even
 
 		int layer = scId.layer();
 		std::array<double, 8> radius = scal.computeRadius(scId);
-		double dose = scal.getDoseValue(layer, radius);
-		double fluence = scal.getFluenceValue(layer, radius);
+		double dose = scal.getDoseValue(DetId::HGCalHSc, layer, radius);
+		double fluence = scal.getFluenceValue(DetId::HGCalHSc, layer, radius);
 
 		auto dosePair = scal.scaleByDose(scId, radius);
 		float scaleFactorByDose = dosePair.first;
