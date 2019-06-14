@@ -6,6 +6,4 @@
   </library>
   <library file="HGCHEbackSignalScalerAnalyzer.cc" name="HGCHEbackSignalScalerAnalyzer">
   </library>
-  <library file="HGCOccupancyAnalyzer.cc" name="HGCOccupancyAnalyzer">
-  </library>
 </environment>
