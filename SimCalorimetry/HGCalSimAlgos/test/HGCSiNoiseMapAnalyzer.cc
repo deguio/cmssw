@@ -135,8 +135,6 @@ void HGCSiNoiseMapAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
       layerF_[key]        = fs_->make<TH1F>(layerBaseName+"fluence", layerTitle+"<F> [n_{eq}/cm^{2}]", nbinsR, ranR.first, ranR.second);
       layerGain_[key]     = fs_->make<TH1F>(layerBaseName+"gain",    layerTitle+"<Gain>",              nbinsR, ranR.first, ranR.second);
       layerMipPeak_[key]  = fs_->make<TH1F>(layerBaseName+"mippeak", layerTitle+"<MIP peak> [ADC]",    nbinsR, ranR.first, ranR.second);
-      layerGainStart_[key]     = fs_->make<TH1F>(layerBaseName+"gainstart",    layerTitle+"<Gain>",              nbinsR, ranR.first, ranR.second);
-      layerMipPeakStart_[key]  = fs_->make<TH1F>(layerBaseName+"mippeakstart", layerTitle+"<MIP peak> [ADC]",    nbinsR, ranR.first, ranR.second);
     }
 
     //cce vs fluence
@@ -157,8 +155,6 @@ void HGCSiNoiseMapAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
     detF_[d]       = fs_->make<TH2F>(baseName+"fluence", title+"<F> [n_{eq}/cm^{2}]", nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
     detGain_[d]    = fs_->make<TH2F>(baseName+"gain",    title+"<Gain>",              nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
     detMipPeak_[d] = fs_->make<TH2F>(baseName+"mippeak", title+"<MIP peak> [ADC]",    nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
-    detGainStart_[d]    = fs_->make<TH2F>(baseName+"gainstart",    title+"<Gain>",              nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
-    detMipPeakStart_[d] = fs_->make<TH2F>(baseName+"mippeakstart", title+"<MIP peak> [ADC]",    nlay,1,nlay+1, nbinsR,ranR.first,ranR.second);
 
     //fill histos
     for(const auto &cellId : detIdVec)
