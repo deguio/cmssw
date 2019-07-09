@@ -3,7 +3,8 @@
 //
 HGCalSiNoiseMap::HGCalSiNoiseMap() :
   encpScale_(840.),
-  encScale_(1.60217646E-4)
+  encCommonNoiseSub_( sqrt(1.25) ),
+  enc2fc_(1.60217646E-4)
 {
   encsParam_[q80fC]  = {636.,  15.6, 0.0328};
   encsParam_[q160fC] = {1045., 8.74, 0.0685};
@@ -57,7 +58,7 @@ HGCalSiNoiseMap::SiCellOpCharacteristics HGCalSiNoiseMap::getSiCellOpCharacteris
   //build noise estimate
   double enc_p(encpScale_*sqrt(siop.ileak));
   double enc_s(encsParam_[srange][0]+encsParam_[srange][1]*cellCap+encsParam_[srange][2]*pow(cellCap,2));
-  siop.noise=hypot(enc_p,enc_s)*encScale_;
-
+  siop.noise=hypot(enc_p,enc_s)*encCommonNoiseSub_*enc2fc_;
+  
   return siop;
 }

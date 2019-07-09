@@ -42,8 +42,11 @@ class HGCalSiNoiseMap : public HGCalRadiationMap {
   //shaper noise param
   const double encpScale_;
 
+  //common noise subtraction noise (final scaling value)
+  const double encCommonNoiseSub_;
+
   //electron charge in fC
-  const double encScale_;
+  const double enc2fc_;
 
   //electronics noise (series+parallel) polynomial coeffs;
   std::map<SignalRange_t,std::vector<double> > encsParam_;
