@@ -26,7 +26,7 @@ HGCalSiNoiseMap::HGCalSiNoiseMap() :
 }
 
 //
-HGCalSiNoiseMap::SiCellOpCharacteristics HGCalSiNoiseMap::getSiCellOpCharacteristics(SignalRange_t srange,const HGCSiliconDetId &cellId) {
+HGCalSiNoiseMap::SiCellOpCharacteristics HGCalSiNoiseMap::getSiCellOpCharacteristics(SignalRange_t srange,const HGCSiliconDetId &cellId,bool ignoreFluence) {
 
   //compute the radius here
   GlobalPoint pt(geom()->getPosition(cellId));
@@ -43,21 +43,28 @@ HGCalSiNoiseMap::SiCellOpCharacteristics HGCalSiNoiseMap::getSiCellOpCharacteris
 
   //get fluence
   if(getDoseMap().empty()) return siop;
-  std::array<double, 8> radii{ {radius,pow(radius,2),pow(radius,3),pow(radius,4),0.,0.,0.,0.} };
-  siop.fluence=getFluenceValue(cellId.subdet(),layer,radii);
-  siop.lnfluence=log(siop.fluence);
 
-  //leakage current [muA]
-  siop.ileak=exp(ileakParam_[0]*siop.lnfluence+ileakParam_[1])*cellVol*1e6;
-
-  siop.cce=siop.fluence<=cceParam_[cellThick][0] ? 1+cceParam_[cellThick][2]*siop.fluence :
-           siop.fluence>cceParam_[cellThick][0] && siop.fluence<=cceParam_[cellThick][1] ? cceParam_[cellThick][3]*siop.fluence+(cceParam_[cellThick][2]-cceParam_[cellThick][3])*cceParam_[cellThick][0]+1 :
-           cceParam_[cellThick][4]*siop.fluence+(cceParam_[cellThick][3]-cceParam_[cellThick][4])*cceParam_[cellThick][1]+(cceParam_[cellThick][2]-cceParam_[cellThick][3])*cceParam_[cellThick][0]+1;
+  //leakage current and CCE [muA]
+  if(ignoreFluence) {
+    siop.fluence=0;
+    siop.lnfluence=-1;
+    siop.ileak=exp(ileakParam_[1])*cellVol*1e6;
+    siop.cce=1;
+  }
+  else {
+    std::array<double, 8> radii{ {radius,pow(radius,2),pow(radius,3),pow(radius,4),0.,0.,0.,0.} };
+    siop.fluence=getFluenceValue(cellId.subdet(),layer,radii);
+    siop.lnfluence=log(siop.fluence);
+    siop.ileak=exp(ileakParam_[0]*siop.lnfluence+ileakParam_[1])*cellVol*1e6;
+    siop.cce=siop.fluence<=cceParam_[cellThick][0] ? 1+cceParam_[cellThick][2]*siop.fluence :
+      siop.fluence>cceParam_[cellThick][0] && siop.fluence<=cceParam_[cellThick][1] ? cceParam_[cellThick][3]*siop.fluence+(cceParam_[cellThick][2]-cceParam_[cellThick][3])*cceParam_[cellThick][0]+1 :
+      cceParam_[cellThick][4]*siop.fluence+(cceParam_[cellThick][3]-cceParam_[cellThick][4])*cceParam_[cellThick][1]+(cceParam_[cellThick][2]-cceParam_[cellThick][3])*cceParam_[cellThick][0]+1;
+  }
 
 
   //build noise estimate
-  double enc_p(encpScale_*sqrt(siop.ileak));
   double enc_s(encsParam_[srange][0]+encsParam_[srange][1]*cellCap+encsParam_[srange][2]*pow(cellCap,2));
+  double enc_p(encpScale_*sqrt(siop.ileak));
   siop.noise=hypot(enc_p,enc_s)*encCommonNoiseSub_*enc2fc_;
   
   return siop;
