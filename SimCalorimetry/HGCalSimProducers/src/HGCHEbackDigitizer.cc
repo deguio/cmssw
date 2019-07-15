@@ -130,8 +130,7 @@ void HGCHEbackDigitizer::runRealisticDigitizer(std::unique_ptr<HGCalDigiCollecti
       }
 
       //take into account the sipm size
-      if (scaleBySipmArea_)
-      {
+      if (scaleBySipmArea_) {
         sipmFactor = scal_.scaleBySipmArea(id, radius[0]);
         scaledPePerMip *= sipmFactor;
         tunedNoise *= sqrt(sipmFactor);

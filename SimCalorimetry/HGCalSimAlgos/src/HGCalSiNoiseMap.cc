@@ -22,10 +22,6 @@ HGCalSiNoiseMap::HGCalSiNoiseMap() :
 //
 HGCalSiNoiseMap::SiCellOpCharacteristics HGCalSiNoiseMap::getSiCellOpCharacteristics(SignalRange_t srange,const HGCSiliconDetId &cellId,bool ignoreFluence) {
 
-  //compute the radius here
-  GlobalPoint pt(geom()->getPosition(cellId));
-  double radius(pt.perp());
-
   SiCellOpCharacteristics siop;
 
   //decode cell properties
@@ -46,7 +42,14 @@ HGCalSiNoiseMap::SiCellOpCharacteristics HGCalSiNoiseMap::getSiCellOpCharacteris
     siop.cce=1;
   }
   else {
-    std::array<double, 8> radii{ {radius,pow(radius,2),pow(radius,3),pow(radius,4),0.,0.,0.,0.} };
+    //compute the radius here
+    auto xy(ddd()->locateCell(cellId.layer(), cellId.waferU(), cellId.waferV(), cellId.cellU(), cellId.cellV(), true, true));
+    double radius2 = std::pow(xy.first, 2) + std::pow(xy.second, 2); //in cm
+
+    double radius  = sqrt(radius2);
+    double radius3 = radius*radius2;
+    double radius4 = pow(radius2,2);
+    std::array<double, 8> radii{ {radius,radius2,radius3,radius4,0.,0.,0.,0.} };
     siop.fluence=getFluenceValue(cellId.subdet(),layer,radii);
     siop.lnfluence=log(siop.fluence);
     siop.ileak=exp(ileakParam_[0]*siop.lnfluence+ileakParam_[1])*cellVol*1e6;
