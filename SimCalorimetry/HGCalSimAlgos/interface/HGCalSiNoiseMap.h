@@ -20,7 +20,7 @@ class HGCalSiNoiseMap : public HGCalRadiationMap {
   struct SiCellOpCharacteristics{
   SiCellOpCharacteristics() : lnfluence(0.), fluence(0.), ileak(0.), cce(1.), noise(0.), mipfC(0), gain(0), mipADC(0),thrADC(0) {}
     double lnfluence,fluence,ileak,cce,noise,mipfC;
-    unsigned int gain,mipADC,thrADC;
+    unsigned int gain,mipADC,thrADC,maxADC;
   };
 
   HGCalSiNoiseMap();
@@ -59,6 +59,7 @@ class HGCalSiNoiseMap : public HGCalRadiationMap {
   std::vector<double> &getIleakParam()                                     { return ileakParam_; }
   std::map<GainRange_t,std::vector<double> > & getENCsParam()              { return encsParam_; }
   std::map<GainRange_t,double > & getLSBPerGain()                          { return lsbPerGain_; }
+  std::map<GainRange_t,double > & getMaxADCPerGain()                       { return maxADCPerGain_; }
 
 
  private:
@@ -83,7 +84,7 @@ class HGCalSiNoiseMap : public HGCalRadiationMap {
   std::map<GainRange_t,std::vector<double> > encsParam_;
 
   //lsb
-  std::map<GainRange_t,double > lsbPerGain_;
+  std::map<GainRange_t,double > lsbPerGain_,maxADCPerGain_;
 };
 
 #endif

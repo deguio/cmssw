@@ -6,14 +6,15 @@ HGCalSiNoiseMap::HGCalSiNoiseMap() :
   encCommonNoiseSub_( sqrt(1.25) ),
   qe2fc_(1.60217646E-4)
 {
-  encsParam_[q80fC]   = {636.,  15.6, 0.0328};
-  lsbPerGain_[q80fC]  = 80./1024.;
+  encsParam_[q80fC]      = {636.,  15.6, 0.0328};
+  maxADCPerGain_[q80fC]  = 80.;
+  encsParam_[q160fC]     = {1045., 8.74, 0.0685};
+  maxADCPerGain_[q160fC] = 160.;
+  encsParam_[q320fC]     = {1915., 2.79, 0.0878};
+  maxADCPerGain_[q320fC] = 320.;
 
-  encsParam_[q160fC]  = {1045., 8.74, 0.0685};
-  lsbPerGain_[q160fC] = 160./1024.;
-
-  encsParam_[q320fC]  = {1915., 2.79, 0.0878};
-  lsbPerGain_[q320fC] = 320./1024.;
+  for(auto i : maxADCPerGain_)
+    lsbPerGain_[i.first] = i.second/1024.;
 
   mipEqfC_[HGCSiliconDetId::waferType::HGCalFine]                = 120.*67.*qe2fc_;
   cellCapacitance_[HGCSiliconDetId::waferType::HGCalFine]        = 50;

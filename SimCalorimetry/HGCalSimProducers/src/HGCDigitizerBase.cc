@@ -10,6 +10,7 @@ HGCDigitizerBase<DFr>::HGCDigitizerBase(const edm::ParameterSet& ps) : scaleByDo
   bxTime_        = ps.getParameter<double>("bxTime");
   myCfg_         = ps.getParameter<edm::ParameterSet>("digiCfg");
   doTimeSamples_ = myCfg_.getParameter< bool >("doTimeSamples");
+  thresholdFollowsMIP_ = myCfg_.getParameter<bool>("thresholdFollowsMIP");
 
   if(myCfg_.exists("keV2fC"))   keV2fC_   = myCfg_.getParameter<double>("keV2fC");
   else                          keV2fC_   = 1.0;
@@ -79,20 +80,25 @@ void HGCDigitizerBase<DFr>::runSimple(std::unique_ptr<HGCDigitizerBase::DColl>& 
     addCellMetadata(cell, theGeom, id);
 
     //set the noise,cce, LSB and threshold to be used     
-    float cce(1.f),noiseWidth(0.f),lsbADC(-1.f);
+    float cce(1.f),noiseWidth(0.f),lsbADC(-1.f),maxADC(-1.f);
     int thrADC(5);
     if(scaleByDose_){
       HGCSiliconDetId detId(id);
       HGCalSiNoiseMap::SiCellOpCharacteristics siop=scal_.getSiCellOpCharacteristics(detId,HGCalSiNoiseMap::AUTO);
       cce        = siop.cce;
-      noiseWidth = siop.noise 
-      lsbADC     = scal_.getLSBPerGain()[siop.gain];
+      noiseWidth = siop.noise;
+      lsbADC     = scal_.getLSBPerGain()[(HGCalSiNoiseMap::GainRange_t)siop.gain];
+      maxADC     = scal_.getMaxADCPerGain()[(HGCalSiNoiseMap::GainRange_t)siop.gain];
       if(thresholdFollowsMIP_) thrADC = siop.thrADC;
     }
     else if (noise_fC_[cell.thickness-1] != 0) {
+      //this is kept for legacy compatibility with the TDR simulation
+      //probably should simply be removed in a future iteration
       cce        = (cce_.empty() ? 1.f : cce_[cell.thickness-1]);
       noiseWidth = cell.size*noise_fC_[cell.thickness-1];
-      //FIXMEthreshold follows mip for this case...
+      if(thresholdFollowsMIP_) {
+        thrADC = cell.thickness * cce * myFEelectronics_->getADCThreshold();
+      } 
     }
 
     //loop over time samples and add noise
@@ -113,7 +119,7 @@ void HGCDigitizerBase<DFr>::runSimple(std::unique_ptr<HGCDigitizerBase::DColl>& 
 
     //run the shaper to create a new data frame
     DFr rawDataFrame( id );
-    myFEelectronics_->runShaper(rawDataFrame, chargeColl, toa, cell.thickness, engine, thrADC, lsbADC);
+    myFEelectronics_->runShaper(rawDataFrame, chargeColl, toa, engine, thrADC, lsbADC, maxADC, cell.thickness);
 
     //update the output according to the final shape
     updateOutput(coll, rawDataFrame);

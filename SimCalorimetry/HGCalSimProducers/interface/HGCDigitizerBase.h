@@ -147,6 +147,9 @@ protected:
 
   //if true will put both in time and out-of-time samples in the event
   bool doTimeSamples_;
+
+  //if set to true, threshold will be computed based on the expected meap peak/2
+  bool thresholdFollowsMIP_;
 };
 
 #endif
