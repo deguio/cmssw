@@ -180,9 +180,8 @@ void HGCHEbackDigitizer::runRealisticDigitizer(std::unique_ptr<HGCalDigiCollecti
 
     //init a new data frame and run shaper
     HGCalDataFrame newDataFrame(id);
-    //@Federico - check if my change (from cce to threshold) makes sense)
     int thrADC(calibDigis_ ? 1 : std::floor(0.5*scaledPePerMip/nPEperMIP_));
-    this->myFEelectronics_->runShaper(newDataFrame, chargeColl, toa, engine,thrADC); 
+    this->myFEelectronics_->runShaper(newDataFrame, chargeColl, toa, engine, thrADC);
 
     //prepare the output
     this->updateOutput(digiColl, newDataFrame);
