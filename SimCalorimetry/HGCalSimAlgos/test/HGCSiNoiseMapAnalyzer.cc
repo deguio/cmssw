@@ -58,7 +58,7 @@ private:
   std::map< std::pair<DetId::Detector,int>, TH1F *> layerN_, layerCCE_, layerNoise_, layerIleak_, layerSN_, layerF_,layerGain_,layerMipPeak_;
   std::map< DetId::Detector, TH2F *> detN_, detCCE_, detNoise_, detIleak_, detSN_, detF_,detGain_,detMipPeak_;
   std::map< std::pair<DetId::Detector,HGCSiliconDetId::waferType>, TProfile *> detCCEVsFluence_;
-    
+
   int aimMIPtoADC_;
   bool ignoreFluence_,ignoreGainSettings_;
 };
@@ -177,7 +177,7 @@ void HGCSiNoiseMapAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         detSN_[d]->Fill(layer,r,siop.mipfC/siop.noise);
         detIleak_[d]->Fill(layer,r,siop.ileak);
         detF_[d]->Fill(layer,r,siop.fluence);
-        detGain_[d]->Fill(layer,r,gainToSet+1);
+        detGain_[d]->Fill(layer,r,siop.gain+1);
         detMipPeak_[d]->Fill(layer,r,siop.mipADC);
 
         //per layer histograms
@@ -188,7 +188,7 @@ void HGCSiNoiseMapAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
         layerSN_[key]->Fill(r,siop.mipfC/siop.noise);
         layerIleak_[key]->Fill(r,siop.ileak);
         layerF_[key]->Fill(r,siop.fluence);
-        layerGain_[key]->Fill(r,gainToSet+1);
+        layerGain_[key]->Fill(r,siop.gain+1);
         layerMipPeak_[key]->Fill(r,siop.mipADC);
 
         std::pair<DetId::Detector,HGCSiliconDetId::waferType> key2(d,HGCSiliconDetId::waferType(id.type()));
