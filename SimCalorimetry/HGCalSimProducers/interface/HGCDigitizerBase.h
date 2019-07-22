@@ -123,7 +123,7 @@ protected:
 
   //1keV in fC
   float keV2fC_;
-  
+
   //noise level (used if scaleByDose=False)
   std::vector<float> noise_fC_;
 
@@ -135,7 +135,7 @@ protected:
 
   //path to dose map
   std::string doseMapFile_;
-  
+
   //noise maps (used if scaleByDose=True)
   HGCalSiNoiseMap scal_;
 

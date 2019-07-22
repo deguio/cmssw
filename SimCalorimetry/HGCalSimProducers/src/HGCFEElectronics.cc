@@ -100,7 +100,8 @@ HGCFEElectronics<DFr>::HGCFEElectronics(const edm::ParameterSet& ps)
 
 //
 template <class DFr>
-void HGCFEElectronics<DFr>::runTrivialShaper(DFr& dataFrame, HGCSimHitData& chargeColl, int thrADC, float lsbADC,float maxADC) {
+void HGCFEElectronics<DFr>::runTrivialShaper(
+    DFr& dataFrame, HGCSimHitData& chargeColl, int thrADC, float lsbADC, float maxADC) {
   bool debug(false);
 
 #ifdef EDM_ML_DEBUG
@@ -111,8 +112,10 @@ void HGCFEElectronics<DFr>::runTrivialShaper(DFr& dataFrame, HGCSimHitData& char
   if (debug)
     edm::LogVerbatim("HGCFE") << "[runTrivialShaper]" << std::endl;
 
-  if(lsbADC<0)   lsbADC=adcLSB_fC_;
-  if(maxADC<0) maxADC=adcSaturation_fC_;
+  if (lsbADC < 0)
+    lsbADC = adcLSB_fC_;
+  if (maxADC < 0)
+    maxADC = adcSaturation_fC_;
   for (int it = 0; it < (int)(chargeColl.size()); it++) {
     //brute force saturation, maybe could to better with an exponential like saturation
     const uint32_t adc = std::floor(std::min(chargeColl[it], maxADC) / lsbADC);
@@ -133,7 +136,8 @@ void HGCFEElectronics<DFr>::runTrivialShaper(DFr& dataFrame, HGCSimHitData& char
 
 //
 template <class DFr>
-void HGCFEElectronics<DFr>::runSimpleShaper(DFr& dataFrame, HGCSimHitData& chargeColl, int thrADC, float lsbADC,float maxADC) {
+void HGCFEElectronics<DFr>::runSimpleShaper(
+    DFr& dataFrame, HGCSimHitData& chargeColl, int thrADC, float lsbADC, float maxADC) {
   //convolute with pulse shape to compute new ADCs
   newCharge.fill(0.f);
   bool debug(false);
@@ -165,7 +169,6 @@ void HGCFEElectronics<DFr>::runSimpleShaper(DFr& dataFrame, HGCSimHitData& charg
       edm::LogVerbatim("HGCFE") << std::endl;
   }
 
-
   for (int it = 0; it < (int)(newCharge.size()); it++) {
     //brute force saturation, maybe could to better with an exponential like saturation
     const float saturatedCharge(std::min(newCharge[it], maxADC));
@@ -178,7 +181,6 @@ void HGCFEElectronics<DFr>::runSimpleShaper(DFr& dataFrame, HGCSimHitData& charg
                                 << adcLSB_fC_ << " ) ";
   }
 
-
   if (debug) {
     std::ostringstream msg;
     dataFrame.print(msg);
@@ -190,7 +192,7 @@ void HGCFEElectronics<DFr>::runSimpleShaper(DFr& dataFrame, HGCSimHitData& charg
 template <class DFr>
 void HGCFEElectronics<DFr>::runShaperWithToT(DFr& dataFrame,
                                              HGCSimHitData& chargeColl,
-                                             HGCSimHitData& toaColl,                                         
+                                             HGCSimHitData& toaColl,
                                              CLHEP::HepRandomEngine* engine,
                                              int thrADC,
                                              float lsbADC,
@@ -412,8 +414,10 @@ void HGCFEElectronics<DFr>::runShaperWithToT(DFr& dataFrame,
   //set new ADCs and ToA
   if (debug)
     edm::LogVerbatim("HGCFE") << "\t final result : ";
-  if(lsbADC<0) lsbADC=adcLSB_fC_;
-  if(maxADC<0) maxADC=adcSaturation_fC_;
+  if (lsbADC < 0)
+    lsbADC = adcLSB_fC_;
+  if (maxADC < 0)
+    maxADC = adcSaturation_fC_;
   for (int it = 0; it < (int)(newCharge.size()); it++) {
     if (debug)
       edm::LogVerbatim("HGCFE") << chargeColl[it] << " -> " << newCharge[it] << " ";
