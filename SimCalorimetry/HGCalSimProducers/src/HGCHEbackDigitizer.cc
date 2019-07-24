@@ -113,7 +113,7 @@ void HGCHEbackDigitizer::runRealisticDigitizer(std::unique_ptr<HGCalDigiCollecti
 
     if (id.det() == DetId::HGCalHSc)  //skip those geometries that have HE used as BH
     {
-      std::array<double, 8> radius;
+      radiiVec radius;
       if (scaleByTileArea_ or scaleByDose_ or scaleBySipmArea_)
         radius = scal_.computeRadius(id);
 

@@ -38,8 +38,9 @@ HGCDigitizerBase<DFr>::HGCDigitizerBase(const edm::ParameterSet& ps) : scaleByDo
   } else {
     noise_fC_.resize(1, 1.f);
   }
-  if (myCfg_.existsAs<std::vector<double>>("ileakParam")) {
-    scal_.setIleakParam(myCfg_.getParameter<std::vector<double>>("ileakParam"));
+  if (myCfg_.existsAs<edm::ParameterSet>("ileakParam")) {
+    scal_.setIleakParam(
+        myCfg_.getParameter<edm::ParameterSet>("ileakParam").template getParameter<std::vector<double>>("ileakParam"));
   }
   if (myCfg_.existsAs<edm::ParameterSet>("cceParams")) {
     scal_.setCceParam(
@@ -119,7 +120,7 @@ void HGCDigitizerBase<DFr>::runSimple(std::unique_ptr<HGCDigitizerBase::DColl>& 
         toa[i] = cell.hit_info[1][i] / rawCharge;
 
       //final charge estimation
-      float noise = (float)CLHEP::RandGaussQ::shoot(engine, 0.0, noiseWidth);
+      float noise = CLHEP::RandGaussQ::shoot(engine, 0.0, noiseWidth);
       float totalCharge(rawCharge * cce + noise);
       if (totalCharge < 0.f)
         totalCharge = 0.f;

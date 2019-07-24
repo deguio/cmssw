@@ -9,8 +9,8 @@ HGCalSciNoiseMap::HGCalSciNoiseMap() : refEdge_(3.) {}
 void HGCalSciNoiseMap::setSipmMap(const std::string& fullpath) { sipmMap_ = readSipmPars(fullpath); }
 
 //
-std::map<int, float> HGCalSciNoiseMap::readSipmPars(const std::string& fullpath) {
-  std::map<int, float> result;
+std::unordered_map<int, float> HGCalSciNoiseMap::readSipmPars(const std::string& fullpath) {
+  std::unordered_map<int, float> result;
   //no file means default sipm size
   if (fullpath.empty())
     return result;
@@ -35,8 +35,7 @@ std::map<int, float> HGCalSciNoiseMap::readSipmPars(const std::string& fullpath)
 }
 
 //
-std::pair<double, double> HGCalSciNoiseMap::scaleByDose(const HGCScintillatorDetId& cellId,
-                                                        const std::array<double, 8>& radius) {
+std::pair<double, double> HGCalSciNoiseMap::scaleByDose(const HGCScintillatorDetId& cellId, const radiiVec& radius) {
   if (getDoseMap().empty())
     return std::make_pair(1., 0.);
 
@@ -53,7 +52,7 @@ std::pair<double, double> HGCalSciNoiseMap::scaleByDose(const HGCScintillatorDet
   return std::make_pair(scaleFactor, noise);
 }
 
-double HGCalSciNoiseMap::scaleByTileArea(const HGCScintillatorDetId& cellId, const std::array<double, 8>& radius) {
+double HGCalSciNoiseMap::scaleByTileArea(const HGCScintillatorDetId& cellId, const radiiVec& radius) {
   double edge;
   if (cellId.type() == 0) {
     constexpr double factor = 2 * M_PI * 1. / 360.;
@@ -79,7 +78,7 @@ double HGCalSciNoiseMap::scaleBySipmArea(const HGCScintillatorDetId& cellId, con
     return 1.;
 }
 
-std::array<double, 8> HGCalSciNoiseMap::computeRadius(const HGCScintillatorDetId& cellId) {
+radiiVec HGCalSciNoiseMap::computeRadius(const HGCScintillatorDetId& cellId) {
   GlobalPoint global = geom()->getPosition(cellId);
 
   double radius2 = std::pow(global.x(), 2) + std::pow(global.y(), 2);  //in cm
@@ -92,7 +91,6 @@ std::array<double, 8> HGCalSciNoiseMap::computeRadius(const HGCScintillatorDetId
   double radius_m100_3 = radius_m100_2 * radius_m100;
   double radius_m100_4 = std::pow(radius_m100_2, 2);
 
-  std::array<double, 8> radii{
-      {radius, radius2, radius3, radius4, radius_m100, radius_m100_2, radius_m100_3, radius_m100_4}};
+  radiiVec radii{{radius, radius2, radius3, radius4, radius_m100, radius_m100_2, radius_m100_3, radius_m100_4}};
   return radii;
 }

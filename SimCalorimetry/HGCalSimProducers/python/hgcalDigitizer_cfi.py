@@ -10,8 +10,9 @@ thresholdTracksMIP = False
 
 ileakParam_600V     = [0.993,-42.668]
 ileakParam_800V     = [0.996,-42.464]
-ileakParam_toUse    = ileakParam_600V
-
+HGCAL_ileakParam_toUse    = cms.PSet(
+    ileakParam = cms.vdouble(ileakParam_600V)
+    )
 
 #  line+log tdr 600V
 cceParamFine_tdr600  = [1.5e+15, -3.00394e-17, 0.318083]      #120
@@ -34,7 +35,7 @@ cceParamFine_epi600  = [3.5e+15, -9.73872e-19, 0.263812]      #100
 cceParamThin_epi600  = [1.5e+15, -3.09878e-16, 0.211207]      #200
 cceParamThick_epi600 = [6e+14,   -7.96539e-16, 0.251751]      #300
 
-HGCAL_cceParams_toUse      = cms.PSet(
+HGCAL_cceParams_toUse = cms.PSet(
     cceParamFine  = cms.vdouble(cceParamFine_tdr600),
     cceParamThin  = cms.vdouble(cceParamThin_tdr600),
     cceParamThick = cms.vdouble(cceParamThick_tdr600)
@@ -79,7 +80,7 @@ hgceeDigitizer = cms.PSet(
     verbosity         = cms.untracked.uint32(0),
     digiCfg = cms.PSet(
         keV2fC           = cms.double(0.044259), #1000 eV/3.62 (eV per e) / 6.24150934e3 (e per fC)
-        ileakParam       = cms.vdouble(ileakParam_toUse),
+        ileakParam       = cms.PSet(refToPSet_ = cms.string("HGCAL_ileakParam_toUse")),
         cceParams        = cms.PSet(refToPSet_ = cms.string("HGCAL_cceParams_toUse")),
         chargeCollectionEfficiencies = cms.PSet(refToPSet_ = cms.string("HGCAL_chargeCollectionEfficiencies")),
         noise_fC         = cms.PSet(refToPSet_ = cms.string("HGCAL_noise_fC")),
@@ -145,7 +146,7 @@ hgchefrontDigitizer = cms.PSet(
     verbosity         = cms.untracked.uint32(0),
     digiCfg = cms.PSet(
         keV2fC           = cms.double(0.044259), #1000 eV / 3.62 (eV per e) / 6.24150934e3 (e per fC)
-        ileakParam       = cms.vdouble(ileakParam_toUse),
+        ileakParam       = cms.PSet(refToPSet_ = cms.string("HGCAL_ileakParam_toUse")),
         cceParams        = cms.PSet(refToPSet_ = cms.string("HGCAL_cceParams_toUse")),
         chargeCollectionEfficiencies = cms.PSet(refToPSet_ = cms.string("HGCAL_chargeCollectionEfficiencies")),
         noise_fC         = cms.PSet(refToPSet_ = cms.string("HGCAL_noise_fC")),
@@ -256,7 +257,7 @@ hfnoseDigitizer = cms.PSet(
     verbosity         = cms.untracked.uint32(0),
     digiCfg = cms.PSet(
         keV2fC           = cms.double(0.044259), #1000 eV/3.62 (eV per e) / 6.24150934e3 (e per fC)
-        ileakParam       = cms.vdouble(ileakParam_toUse),
+        ileakParam       = cms.PSet(refToPSet_ = cms.string("HGCAL_ileakParam_toUse")),
         cceParams        = cms.PSet(refToPSet_ = cms.string("HGCAL_cceParams_toUse")),
         chargeCollectionEfficiencies = cms.PSet(refToPSet_ = cms.string("HGCAL_chargeCollectionEfficiencies")),
         noise_fC         = cms.PSet(refToPSet_ = cms.string("HGCAL_noise_fC")),
