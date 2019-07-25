@@ -34,6 +34,8 @@
 #include <iomanip>
 
 #include "vdt/vdtMath.h"
+#include "DataFormats/Math/interface/Vector3D.h"
+
 
 //
 // class declaration
@@ -359,12 +361,20 @@ void HGCHEbackSignalScalerAnalyzer::printBoundaries() {
 
   std::cout << std::endl;
   std::cout << "r boundaries" << std::endl;
-  std::cout << std::setw(5) << "layer" << std::setw(10) << "r-min" << std::setw(10) << "r-max" << std::endl;
+  //  std::cout << std::setw(5) << "layer" << std::setw(10) << "r-min" << std::setw(10) << "r-max" << std::endl;
+  std::cout << std::setw(5) << "layer" << std::setw(10) << "z" << std::setw(10) << "r-min" << std::setw(10) << "eta" << std::setw(10) << "r-max" << std::setw(10) << "eta" << std::endl;
+
   for (auto elem : layerRadiusMap_) {
     auto rMin = (elem.second).begin();
     auto rMax = (elem.second).rbegin();
-    std::cout << std::setprecision(5) << std::setw(5) << elem.first << std::setw(10) << rMin->second << std::setw(10)
-              << rMax->second << std::endl;
+    //std::cout << std::setprecision(5) << std::setw(5) << elem.first << std::setw(10) << rMin->second << std::setw(10)
+    //          << rMax->second << std::endl;
+
+    math::XYZVector transitionIn((double)0., (double)rMin->second, (double)(layerMap_[elem.first]));
+    math::XYZVector transitionOut((double)0., (double)rMax->second, (double)(layerMap_[elem.first]));
+    std::cout << std::setprecision(5) << std::setw(5) << elem.first << std::setw(10) << transitionIn.z() << 
+      std::setw(10) << transitionIn.y() << std::setw(10) << transitionIn.eta() <<
+      std::setw(10) << transitionOut.y() << std::setw(10) << transitionOut.eta() <<std::endl;
   }
 }
 
