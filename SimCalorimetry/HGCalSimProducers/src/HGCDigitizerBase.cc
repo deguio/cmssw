@@ -100,7 +100,8 @@ void HGCDigitizerBase<DFr>::runSimple(std::unique_ptr<HGCDigitizerBase::DColl>& 
       lsbADC = scal_.getLSBPerGain()[(HGCalSiNoiseMap::GainRange_t)siop.gain];
       maxADC = scal_.getMaxADCPerGain()[(HGCalSiNoiseMap::GainRange_t)siop.gain];
       if (thresholdFollowsMIP_)
-        thrADC = siop.thrADC;
+	//        thrADC = siop.thrADC;
+        thrADC = 0;
     } else if (noise_fC_[cell.thickness - 1] != 0) {
       //this is kept for legacy compatibility with the TDR simulation
       //probably should simply be removed in a future iteration

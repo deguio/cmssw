@@ -201,6 +201,9 @@ void HGCSiNoiseMapAnalyzer::analyze(const edm::Event &iEvent, const edm::EventSe
 
       std::pair<DetId::Detector, int> key2(d, id.type());
       detCCEVsFluence_[key2]->Fill(siop.fluence, siop.cce);
+
+      std::cout << "Layer, WaferU, WaferV, fluence, ileak, cce, gain, noise, mipADC: "
+	        << layer << " " << id.waferU() << " " << id.waferV() << " " << siop.fluence << " " << siop.ileak << " " << siop.cce << " " << siop.gain+1 << " " << siop.noise << " " << siop.mipADC << std::endl;
     }
 
     //normalize histos per cell counts

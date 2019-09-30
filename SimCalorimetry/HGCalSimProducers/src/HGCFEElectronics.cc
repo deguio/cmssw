@@ -424,7 +424,7 @@ void HGCFEElectronics<DFr>::runShaperWithToT(DFr& dataFrame,
     if (debug)
       edm::LogVerbatim("HGCFE") << chargeColl[it] << " -> " << newCharge[it] << " ";
 
-    HGCSample newSample;
+    HGCSample newSample, newSample_desp;
     if (totFlags[it] || busyFlags[it]) {
       if (totFlags[it]) {
         //brute force saturation, maybe could to better with an exponential like saturation
@@ -441,7 +441,15 @@ void HGCFEElectronics<DFr>::runShaperWithToT(DFr& dataFrame,
       //brute force saturation, maybe could to better with an exponential like saturation
       const uint16_t adc = std::floor(std::min(newCharge[it], maxADC) / lsbADC);
       //working version for in-time PU and signal
+      const uint16_t adc_desp = adc+100;
       newSample.set(adc > thrADC, false, (uint16_t)(timeToA / toaLSB_ns_), adc);
+      newSample_desp.set(adc_desp > thrADC, false, (uint16_t)(timeToA / toaLSB_ns_), adc_desp);
+
+      //std::cout << std::endl;
+      //      std::cout << "default - THR: " << newSample.threshold() << " Mode: " << newSample.mode() << " ToA: " << newSample.toa() << " Data: " << newSample.data() << " Raw=0x"
+      //	<< std::hex << newSample.raw() << std::dec << std::endl;
+      //      std::cout << "DESP    - THR: " << newSample_desp.threshold() << " Mode: " << newSample_desp.mode() << " ToA: " << newSample_desp.toa() << " Data: " << newSample_desp.data() << " Raw=0x" << std::hex << newSample_desp.raw() << std::dec << std::endl;
+
       if (toaFlags[it])
         newSample.setToAValid(true);
     }

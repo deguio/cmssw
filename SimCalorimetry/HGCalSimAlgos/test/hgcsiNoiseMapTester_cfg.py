@@ -28,9 +28,9 @@ process.plotter_eol = cms.EDAnalyzer("HGCSiNoiseMapAnalyzer",
                                      ignoreFluence      = cms.bool(False)
                                  )
 
-process.plotter_eol_nogain = process.plotter_eol.clone( ignoreGainSettings = cms.bool(True) )
+#process.plotter_eol_nogain = process.plotter_eol.clone( ignoreGainSettings = cms.bool(True) )
 
-process.plotter_start = process.plotter_eol.clone( ignoreFluence = cms.bool(True) )
+#process.plotter_start = process.plotter_eol.clone( ignoreFluence = cms.bool(True) )
 
 
 process.TFileService = cms.Service("TFileService",
@@ -38,5 +38,6 @@ process.TFileService = cms.Service("TFileService",
 )
 
 process.p = cms.Path(process.plotter_eol
-                     *process.plotter_eol_nogain
-                     *process.plotter_start)
+ #                    *process.plotter_eol_nogain
+ #                    *process.plotter_start
+                    )
