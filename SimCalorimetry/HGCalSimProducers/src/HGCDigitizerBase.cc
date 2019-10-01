@@ -124,7 +124,7 @@ void HGCDigitizerBase<DFr>::runSimple(std::unique_ptr<HGCDigitizerBase::DColl>& 
 
       //final charge estimation
       float noise = CLHEP::RandGaussQ::shoot(engine, 0.0, noiseWidth);
-      float totalCharge(rawCharge * cce + noise);
+      float totalCharge(rawCharge * cce + noise + 10.);
       if (totalCharge < 0.f)
         totalCharge = 0.f;
       chargeColl[i] = totalCharge;
