@@ -18,6 +18,8 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 process.source = cms.Source("EmptySource")
 
+#  enum GainRange_t { q80fC, q160fC, q320fC, AUTO };
+
 from SimCalorimetry.HGCalSimProducers.hgcalDigitizer_cfi import HGCAL_ileakParam_toUse, HGCAL_cceParams_toUse
 process.plotter_eol = cms.EDAnalyzer("HGCSiNoiseMapAnalyzer",
                                      doseMap            = cms.string( options.doseMap ),
@@ -25,12 +27,16 @@ process.plotter_eol = cms.EDAnalyzer("HGCSiNoiseMapAnalyzer",
                                      cceParams          = HGCAL_cceParams_toUse,
                                      aimMIPtoADC        = cms.int32(10),
                                      ignoreGainSettings = cms.bool(False),
-                                     ignoreFluence      = cms.bool(False)
+                                     ignoreFluence      = cms.bool(False),
+                                     waferType          = cms.int32(-1)
                                  )
 
 #process.plotter_eol_nogain = process.plotter_eol.clone( ignoreGainSettings = cms.bool(True) )
+#process.plotter_start      = process.plotter_eol.clone( ignoreFluence = cms.bool(True) )
 
-#process.plotter_start = process.plotter_eol.clone( ignoreFluence = cms.bool(True) )
+process.plotter_fine      = process.plotter_eol.clone( waferType = cms.int32(0) )
+process.plotter_thin      = process.plotter_eol.clone( waferType = cms.int32(1) )
+process.plotter_thick      = process.plotter_eol.clone( waferType = cms.int32(2) )
 
 
 process.TFileService = cms.Service("TFileService",
@@ -40,4 +46,7 @@ process.TFileService = cms.Service("TFileService",
 process.p = cms.Path(process.plotter_eol
  #                    *process.plotter_eol_nogain
  #                    *process.plotter_start
+                      *process.plotter_fine
+                      *process.plotter_thin
+                      *process.plotter_thick
                     )

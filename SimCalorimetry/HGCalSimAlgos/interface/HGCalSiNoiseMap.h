@@ -45,6 +45,7 @@ public:
      if gain range is set to auto, it will find the most appropriate gain to put the mip peak close to 10 ADC counts
   */
   SiCellOpCharacteristics getSiCellOpCharacteristics(const HGCSiliconDetId &did,
+                                                     int type,
                                                      GainRange_t gain = GainRange_t::AUTO,
                                                      bool ignoreFluence = false,
                                                      int aimMIPtoADC = 10);

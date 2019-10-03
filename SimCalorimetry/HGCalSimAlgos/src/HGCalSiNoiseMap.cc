@@ -39,6 +39,7 @@ HGCalSiNoiseMap::HGCalSiNoiseMap() : encpScale_(840.), encCommonNoiseSub_(sqrt(1
 
 //
 HGCalSiNoiseMap::SiCellOpCharacteristics HGCalSiNoiseMap::getSiCellOpCharacteristics(const HGCSiliconDetId &cellId,
+                                                                                     int type,
                                                                                      GainRange_t gain,
                                                                                      bool ignoreFluence,
                                                                                      int aimMIPtoADC) {
@@ -46,7 +47,8 @@ HGCalSiNoiseMap::SiCellOpCharacteristics HGCalSiNoiseMap::getSiCellOpCharacteris
 
   //decode cell properties
   int layer(cellId.layer());
-  unsigned int cellThick = cellId.type();
+//  unsigned int cellThick = cellId.type();
+  unsigned int cellThick = type;
   double cellCap(cellCapacitance_[cellThick]);
   double cellVol(cellVolume_[cellThick]);
 
@@ -100,7 +102,7 @@ HGCalSiNoiseMap::SiCellOpCharacteristics HGCalSiNoiseMap::getSiCellOpCharacteris
   siop.gain = gain;
   siop.mipfC = S;
   siop.mipADC = std::floor(S / lsbPerGain_[gain]);
-  siop.thrADC = std::floor(siop.mipADC / 2);
+  siop.thrADC = std::floor(S / 2. / lsbPerGain_[gain]);
 
   //build noise estimate
   double enc_s(encsParam_[gain][0] + encsParam_[gain][1] * cellCap + encsParam_[gain][2] * pow(cellCap, 2));
